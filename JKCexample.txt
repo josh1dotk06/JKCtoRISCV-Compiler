@@ -1,0 +1,88 @@
+basic jkc syntax rule book (MVP VERSION)
+
+types: int and bools
+
+variable declaration: let [type] [varname] = [value]
+
+if/else: if(expr) then { code }
+            else if(expr) then { code }
+            else { code }
+
+while: while(expr) then { block }
+
+return: the send key word
+
+binary arithmetic: Supports +, -, *, / for now
+
+functions and function calls: fn [funcname](var: type, ...) -> send type { code }
+                            function calls work normally
+                            send type must be either int or bool for now
+
+logical operators: keywords are OR, AND, NOT, instead of ||, &&, !
+                    in a way, this is kind of like a mix of python and C 
+
+comparisons: 
+                is: ==
+                is_lte: <=
+                is_lt <
+                is_gte: >=
+                is_gt: >
+
+
+
+examples for jkc language syntax
+
+
+
+1) simple factorial function using recursion
+fn fact(n: int) -> int {
+    if (n is_lte 1) then send 1;
+    else{
+        send fact(n-1);
+    }
+}
+
+2) standard while loop, start at 4, and increment 10 times to give 14
+fn main() -> int {
+    let int x = 4;
+    let int i = 1;
+    while(i is_lte 10) then {
+        x = x + 1;
+        i = i + 1;
+    }
+    send x;
+}
+
+3) simple calculator using the factorial function
+fn main() -> int {
+    let int x = 5;
+    let int y = 3;
+    let int z = fact(x*y);
+    let bool ok = false;
+
+    if(z is_gt (x+y)) then {
+        ok = true;
+    }
+    else if(z is (x+y)) then {
+        ok = true;
+    }
+    else ok = false;
+
+    if(ok is true) then send 1;
+    else send 0;
+}
+
+
+4) playing with logic
+fn main() -> int {
+    let int x = 1;
+    let int y = 2;
+
+    if(x NOT is y AND x is_gte 1) then {
+        send x + y;
+    }
+    else {
+        send x is y; //returns 0 for false and 1 for true
+    }
+}
+ 
