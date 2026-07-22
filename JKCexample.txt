@@ -1,14 +1,16 @@
 basic jkc syntax rule book (MVP VERSION)
 
-types: int and bools
+types: int (64-bit int) and bools
 
-variable declaration: let [type] [varname] = [value]
+variable declaration: let [varname]: type = [value]
 
 if/else: if(expr) then { code }
             else if(expr) then { code }
             else { code }
 
 while: while(expr) then { block }
+
+(NOTE: for if/else and while blocks, we must use braces)
 
 return: the send key word
 
@@ -28,6 +30,15 @@ comparisons:
                 is_gte: >=
                 is_gt: >
 
+precedence rules: 
+1. Parentheses and function calls
+2. Unary operations
+3. Mult and Division
+4. Addition and Subtraction
+5. Comparison Operations (is, is_lte, is_gte . . .)
+6. AND
+7. OR
+
 
 
 examples for jkc language syntax
@@ -36,16 +47,16 @@ examples for jkc language syntax
 
 1) simple factorial function using recursion
 fn fact(n: int) -> int {
-    if (n is_lte 1) then send 1;
+    if (n is_lte 1) { then send 1; }
     else{
-        send fact(n-1);
+        send n*fact(n-1);
     }
 }
 
 2) standard while loop, start at 4, and increment 10 times to give 14
 fn main() -> int {
-    let int x = 4;
-    let int i = 1;
+    let x: int = 4;
+    let i: int = 1;
     while(i is_lte 10) then {
         x = x + 1;
         i = i + 1;
@@ -66,23 +77,23 @@ fn main() -> int {
     else if(z is (x+y)) then {
         ok = true;
     }
-    else ok = false;
+    else { ok = false; }
 
-    if(ok is true) then send 1;
-    else send 0;
+    if(ok is true) { then send 1; }
+    else { send 0; }
 }
 
 
 4) playing with logic
-fn main() -> int {
-    let int x = 1;
-    let int y = 2;
+fn main() -> bool {
+    let x: int = 1;
+    let y: int = 2;
 
-    if(x NOT is y AND x is_gte 1) then {
-        send x + y;
+    if(NOT(x is y) AND x is_gte 1) then {
+        send NOT(x is y); //returns 0 for false
     }
     else {
-        send x is y; //returns 0 for false and 1 for true
+        send x is y; //returns 1 for true
     }
 }
  
