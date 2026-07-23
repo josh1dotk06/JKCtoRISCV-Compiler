@@ -41,8 +41,41 @@ precedence rules:
 
 
 
-examples for jkc language syntax
+JKC GRAMMAR (mvp) (same idea as taught in 2fa3):
 
+Program      → Function*
+
+Function     → "fn" IDENT "(" Parameters? ")" "->" Type Block
+Parameters   → Parameter ("," Parameter)*
+Parameter    → IDENT ":" Type
+
+Type         → "int" | "bool"
+
+Block        → "{" Statement* "}"
+
+Statement    → LetStmt
+             | AssignStmt
+             | IfStmt
+             | WhileStmt
+             | SendStmt
+             | ExprStmt
+             | Block
+
+LetStmt      → "let" IDENT ":" Type "=" Expr ";"
+AssignStmt   → IDENT "=" Expr ";"
+
+IfStmt       → "if" "(" Expr ")" "then" Block
+               ("else" "if" "(" Expr ")" "then" Block)*
+               ("else" Block)?
+
+WhileStmt    → "while" "(" Expr ")" "then" Block
+
+SendStmt     → "send" Expr ";"
+ExprStmt     → Expr ";"
+
+
+
+examples for jkc language syntax
 
 
 1) simple factorial function using recursion
@@ -96,4 +129,6 @@ fn main() -> bool {
         send x is y; //returns 1 for true
     }
 }
+
+
  
