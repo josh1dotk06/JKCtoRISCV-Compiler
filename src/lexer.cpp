@@ -242,7 +242,7 @@ public:
         return tokens;
     }
 
-    string getTokenTypeName(TokenType type) {
+    static string getTokenTypeName(TokenType type) {
         switch (type) {
             //keywords
             case TokenType::FN:
@@ -334,7 +334,16 @@ public:
     }
 };
 
-    /*USE
+
+void printTokens(const vector<Token>& tokens)
+{
+    for (const auto& token : tokens) {
+        cout << "Type: " << LexicalAnalyzer::getTokenTypeName(token.type)
+             << ", Value: " << token.value << endl;
+    }
+}
+
+
     int main()
 {
 
@@ -344,8 +353,7 @@ public:
 
 
     LexicalAnalyzer lexer(sourceCode);
-
-
+    
     vector<Token> tokens = lexer.tokenize();
 
 
@@ -355,7 +363,7 @@ public:
     printTokens(tokens);
     return 0;
 }
-    */
+
 
 
 
