@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "token.hpp"
 using namespace std;
 
 /*
@@ -13,67 +14,6 @@ operators: +, -, *, lte, gte, NOT, OR . . .
 symbols: (, ), {, }, :, ; . . .
 */
 
-enum class TokenType{
-    //keywords
-    FN,
-    LET,
-    INT,
-    BOOL,
-    IF,
-    ELSE,
-    THEN,
-    WHILE,
-    SEND,
-    TRUE,
-    FALSE,
-    AND,
-    OR,
-    NOT,
-
-    //identi and literal
-    IDENT,
-    INTEGER_LITERAL,
-    //bool literal is not needed since its just t/f
-
-    //operators
-    PLUS,
-    MINUS,
-    TIMES,
-    DIVIDE,
-
-    //comparitors
-    IS,
-    IS_LT,
-    IS_LTE,
-    IS_GT,
-    IS_GTE,
-
-    //assign,ent
-    ASSIGN,
-
-    //symbols
-    LEFT_PAREN,
-    RIGHT_PAREN,
-    LEFT_BRACE,
-    RIGHT_BRACE,
-    COLON,
-    SEMICOLON,
-    COMMA,
-    ARROW,
-
-    //special symbols
-    END_OF_FILE,
-    INVALID
-};
-
-
-struct Token {
-    TokenType type;
-    string value;
-    Token(TokenType tokenType, const string& tokenValue)
-        : type(tokenType), value(tokenValue) {
-    }
-};
 
 class LexicalAnalyzer{
 private:
