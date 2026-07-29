@@ -124,7 +124,7 @@ std::unique_ptr<Stmt> Parser::parseLetStatement(){
 
     //construct a new unique_ptr of letstmt (constructor in ast.hpp)
     //recall that a let stmt consists of these 3 elements
-    return std::make_unique<LetStmt>(varName.value(), decType, std::move(initializer));
+    return std::make_unique<LetStmt>(varName.value, decType, std::move(initializer));
 }
 
 //SendStmt     → "send" Expr ";"
@@ -137,9 +137,27 @@ std::unique_ptr<Stmt> Parser::parseSendStatement(){
 }
 
 //AssignStmt   → IDENT "=" Expr ";"
+//post declaration, if you want to update an existing identifier
 std::unique_ptr<Stmt> Parser::parseAssignStatement(){
+    Token varName = consume(TokenType::IDENT, "expected var IDENT name after 'let'");
+    consume(TokenType::ASSIGN, "expected '=' after IDENT name");
+    std::unique_ptr<Expr> initializer = parseExpression();
+    consume(TokenType::SEMICOLON, "expected ; at end of assignment statement");
 
+    return std::make_unique<AssignStmt>(varName.value, std::move(intializer));
 }
+
+//expr statement 
+//ExprStmt     → Expr ";"
+//seems weird for an expr to be a statement, but function call side effects exist
+std::unique_ptr<Stmt> Parser::parseExprStatement(){
+    std::unique_ptr<Expr> iniitializer = parseExpression();
+    consume(TokenType::SEMICOLON, "expected ; at end of assignment statement");
+
+    return std::make_unique<ExprStmt>(std::move(initializer));
+}
+
+
 
 
 

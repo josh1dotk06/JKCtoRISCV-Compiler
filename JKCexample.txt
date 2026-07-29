@@ -51,6 +51,7 @@ Parameter    → IDENT ":" Type
 
 Type         → "int" | "bool"
 
+//* = 0 or more statements
 Block        → "{" Statement* "}"
 
 Statement    → LetStmt

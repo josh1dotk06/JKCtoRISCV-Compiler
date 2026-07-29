@@ -106,6 +106,41 @@ struct LetStmt : Stmt{
 
         // initializer->print(indent + 4);
     }
+
+
+struct SendStmt : Stmt{
+    std::unique_ptr<Expr> initializer;
+    SendStmt(std::unique_ptr<Expr> initializer) : initializer(std::move(intitializer)) {}
+
+    void print(int indent = 0) const override {
+        const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+struct AssignStmt : Stmt{
+    std::unique_ptr<Expr> initializer;
+    std::string name;
+    AssignStmt(std::string name, std::unique_ptr<Expr> initializer) : initializer(std::move(initializer)); name(std::move(name)) {}
+    
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+struct ExprStmt : Stmt{
+    std::unique_ptr<Expr> initializer;
+    ExprStmt(std::unique_ptr<Expr> initializer) : initializer(std::move(initializer)) {}
+    
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+
+
 };
 
 
