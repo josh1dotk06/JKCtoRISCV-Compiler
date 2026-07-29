@@ -57,10 +57,17 @@ bool Parser::check(TokenType type) const {
     return peek().type == type;
 }
 
+//needed for detecting assignment statement
+bool Parser::checkNext(TokenType type) const {
+    if(position+1 >= token.size()) return false;
+    return tokens.at(position+1).type == type;
+}
+
 //check eof
 bool Parser::isAtEnd() const {
     return check(TokenType::END_OF_FILE);
 }
+
 
 //return curr token and goto next token
 //not const since changes a member (specifically position)
@@ -106,6 +113,14 @@ JKCType Parser::parseType(){
 //only have let currently, will ad more later
 std::unique_ptr<Stmt> Parser::parseStatement(){
     if(check(TokenType::LET)) return parseLetStatement();
+    else if(check(TokenType::SEND)) return parseSendStatement();
+    else if(check(TokenType::WHILE)) return parseWhileStatement();
+    else if(check(TokenType::IF)) return parseIfStatement();
+    else if(check(TokenType::LEFT_BRACE)) return parseBlockStatement();
+    else if(check(TokenType::IDENT) && checkNext(TokenType::ASSIGN)) return parseAssignStatement();
+
+    //for expr stmt, this is the last possible option
+    return parseExprStatement();
 }
 
 
@@ -151,11 +166,43 @@ std::unique_ptr<Stmt> Parser::parseAssignStatement(){
 //ExprStmt     → Expr ";"
 //seems weird for an expr to be a statement, but function call side effects exist
 std::unique_ptr<Stmt> Parser::parseExprStatement(){
-    std::unique_ptr<Expr> iniitializer = parseExpression();
+    std::unique_ptr<Expr> initializer = parseExpression();
     consume(TokenType::SEMICOLON, "expected ; at end of assignment statement");
 
     return std::make_unique<ExprStmt>(std::move(initializer));
 }
+
+//* = 0 or more statements
+//Block        → "{" Statement* "}"
+//logic is to just keep consuming statements into the vector
+std::unique_ptr<Stmt> Parser::parseBlockStatement(){
+    consume(TokenType::LEFT_BRACE, "expected '{' at start of block");
+    std::vector<std::unique_ptr<Stmt>> statements;
+    while(!check(TokenType::RIGHT_BRACE) && !isAtEnd()){
+        statements.push_back(parseStatement());
+    }
+    consume(TokenType::RIGHT_BRACE, "expected '}' at end of block");
+
+    return std::make_unique<BlockStmt>(std::move(statements));
+}
+
+/*
+IfStmt   → "if" "(" Expr ")" "then" Block
+               ("else" "if" "(" Expr ")" "then" Block)*
+               ("else" Block)?
+*/
+std::unique_ptr<Stmt> Parser::ifStatement(){
+    consume(TokenType::IF, "expected 'if' at start of if statement");
+    consume(TokenType::LEFT_PAREN, "expected '(' at start of condition");
+    std::unique_ptr<Expr> initializer = parseExpression();
+    consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
+    consume(TokenType::THEN, "expected 'then' after condition");
+    std::vector<std::unique_ptr<Stmt>> statements = parseBlockStatement();
+
+    if(check(TokenType))
+}
+
+
 
 
 

@@ -139,6 +139,18 @@ struct ExprStmt : Stmt{
     }
 }
 
+//block will contain 0 or more statements, thus must require a vector
+struct BlockStmt : Stmt{
+    std::vector<std::unique_ptr<Stmt>> statements;
+
+    explicit BlockStmt(std::vector<std::unique_ptr<Stmt>> statements) : statements(std::move(statements)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+
+}
+
 
 
 };
