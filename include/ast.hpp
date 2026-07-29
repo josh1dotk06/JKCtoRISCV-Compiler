@@ -1,6 +1,7 @@
 #pragma once
 
 //the whole point of this file is to create the structures to represent the parsed/ast
+//i.e initializing the AST node classes
 //program in memory, also the print stuff are just there for debugging and visualization
 #include <stdint>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <string>
 #include <utility>
 
+//only var types, not token types
 enum class JKCType{
     Int,
     Bool
