@@ -1,3 +1,9 @@
+//parser logic file
+//what are we actually parsing?
+//essentially translating the tokens from the token vector (output of lexer)
+//into object nodes for the AST, the unique_ptr's are what connect each node down the tree
+//AST represents the programs grammatical meaning, and is a useful structure for 
+//the next phase (symbol tables, semantic analysis, and type checking)
 
 #include "ast.hpp"
 #include "token.hpp"
@@ -102,6 +108,7 @@ Token Parser::consume(Tokentype expType, const std::string& errorMessage){
 }
 
 //parse variable types
+//Type         → "int" | "bool"
 JKCType Parser::parseType(){
     if(check(TokenType::INT)){
         advance();
@@ -263,6 +270,20 @@ std::unique_ptr<Expr> Parser::parseExpression(){
     return parsePrimary();
 }
 
+
+/*
+precedence rules: 
+0. primary and parentheses (the most indivisible bottom case expression)
+1. function calls
+2. Unary operations
+3. Mult and Division
+4. Addition and Subtraction
+5. Comparison Operations (is, is_lte, is_gte . . .)
+6. AND
+7. OR
+*/
+
+
 //will support stuff like let x : int = 5, or let y : bool = true;
 std::unique_ptr<Expr> Parser::parsePrimary(){
 
@@ -311,6 +332,100 @@ std::unique_ptr<Expr> Parser::parsePrimary(){
         return exp;
     }
 }
+
+//unary is the only one different with 1 operand
+std::unique_ptr<Expr> Parser::parseUnary(){
+    std::unique_ptr<Expr> operand = parsePrimary();
+    
+}
+
+
+//although its called parseMultiplication, its just precedence for mult and div
+std::unique_ptr<Expr> Parser::parseMultiplication(){
+    //should call the next higher precedence parser
+    //explaination as to why in doc:
+    std::unique_ptr<Expr> left = parseUnary();
+    
+    while(check(TokenType::TIMES) || check(TokenType::DIVIDE)){
+        //consume multiplication/division operator (or just advance doesnt matter)
+        TokenType opToken = advance().type;
+
+        std::unique_ptr<Expr> right = parseUnary();
+        BinaryOperator = op;
+        if(opToken == TokenType::TIMES) op = BinaryOperator::Multiply;
+        else op = BinaryOperator::Divide;
+
+        //make the new left the current binary operation so we can recursively
+        //chain operations
+        left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
+
+
+std::unique_ptr<Expr> Parser::parseAddition(){
+    std::unique_ptr<Expr> left = parseMultiplication();
+    while(check(TokenType::ADD) && check(TokenType::MINUS)){
+        TokenType opToken = advance().type;
+
+        std::unique_ptr<Expr> = parseMultiplication();
+        BinaryOperator op;
+        if(opToken == TokenType::ADD) op = BinaryOperator::Add;
+        else op = BinaryOperator::Subtract;
+
+        left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<Expr> Parser::parseComparison(){
+    std::unique_ptr<Expr> left = parseAddition();
+    while(
+        check(TokenType::IS) ||
+        check(TokenType::IS_LT) ||
+        check(TokenType::IS_LTE) ||
+        check(TokenType::IS_GT) ||
+        check(TokenType::IS_GTE)
+    ){
+        TokenType opToken = advance().type;
+
+        std::unique_ptr<Expr> right = parseAddition();
+        BinaryOperator op;
+        if(opToken == TokenType::IS) op = BinaryOpeartor::Equal;
+        else if(opToken == TokenType::IS_GT) op = BinaryOperator::GreaterThan;
+        else if(opToken == TokenType::IS_GTE) op = BinaryOperator::GreaterThanEqual;
+        else if(opToken == TokenType::IS_LT) op = BinaryOperator::LessThan;
+        else if(opToken == TokenType::IS_LTE) op = BinaryOperator::LessThanEqual;
+
+        left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<Expr> Parser::parseAnd(){
+    std::unique_ptr<Expr> left = parseComparison();
+    while(check(TokenType::AND)){
+        TokenType opToken = advance().type;
+
+        std::unique_ptr<Expr> right = parseComparison();
+        left = std::make_unique<BinaryExpr>(std::move(left), BinaryOperator::And, std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<Expr> Parser::parseOr(){
+    std::unique_ptr<Expr> left = parseAnd();
+    while(check(TokenType::OR)){
+        TokenType opToken = advance().type;
+
+        std::unique_ptr<Expr> right = parseAnd();
+        left = std::make_unique<BinaryExpr>(std::move(left), BinaryOperator::Or, std::move(right));
+    }
+    return left;
+}
+
+
+
 
 
 

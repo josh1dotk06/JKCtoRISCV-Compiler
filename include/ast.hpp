@@ -15,6 +15,28 @@ enum class JKCType{
     Bool
 };
 
+enum class BinaryOperator{
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+
+    Equal,
+    LessThan,
+    LessThanEqual,
+    GreaterThan,
+    GreaterThanEqual,
+
+    And,
+    Or
+};
+
+//we have arithmetic negation and NOT as our unary
+enum class UnaryOperator{
+    Not,
+    Negation
+};
+
 //inline function causes compiler to replaces function call directly with this code
 //also use std for headers, since using namespace std can get copied to whatever file
 //is using this header
@@ -24,6 +46,56 @@ inline std::string getJKCTypeName(JKCType type){
             return "int";
         case JkCType::Bool:
             return "bool";
+    }
+
+    return "unknown";
+}
+
+inline std::string getUnaryOperatorName(UnaryOperator op){
+    switch(op){
+        case UnaryOperator::Not:
+            return "NOT";
+        
+        case UnaryOperator::Negate:
+            return "-";
+    }
+    return "unknown";
+}
+
+inline std::string getBinaryOperatorName(BinaryOperator op) {
+    switch (op) {
+        case BinaryOperator::Add:
+            return "+";
+
+        case BinaryOperator::Subtract:
+            return "-";
+
+        case BinaryOperator::Multiply:
+            return "*";
+
+        case BinaryOperator::Divide:
+            return "/";
+
+        case BinaryOperator::Equal:
+            return "is";
+
+        case BinaryOperator::LessThan:
+            return "is_lt";
+
+        case BinaryOperator::LessThanEqual:
+            return "is_lte";
+
+        case BinaryOperator::GreaterThan:
+            return "is_gt";
+
+        case BinaryOperator::GreaterThanEqual:
+            return "is_gte";
+
+        case BinaryOperator::And:
+            return "AND";
+
+        case BinaryOperator::Or:
+            return "OR";
     }
 
     return "unknown";
@@ -81,6 +153,32 @@ struct VariableExpr : Expr {
         std::cout << std::string(indent, ' ') << "Variable(" << name << ")\n";
     }
 };
+
+struct UnaryExpr : Expr{
+    std::unique_ptr<Expr> operand;
+    UnaryOperator op;
+
+    UnaryExpr(std::unique_ptr<Expr> operand, UnaryOperator op) : operand(std::move(operand)), op(op) {}
+
+    void print(int indent = 0) const override {
+        const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+//binary expression will consist of a left exp, right exp, and an operator inbetween
+struct BinaryExpr : Expr {
+    std::unique_ptr<Expr> left;
+    BinaryOperator op;
+    std::unique_ptr<Expr> right;
+
+    BinaryExpr(std::unique_ptr<Expr> left, BinaryOperator op, std::unique_ptr<Expr> right) : left(std::move(left)), op(op), right(std::move(right)) {}
+    
+    void print(int indent = 0) const override {
+        const std::string padding(indent, ' ');
+1       //future text
+    }
+}
 
 //let statement like let x : int = 5
 struct LetStmt : Stmt{
