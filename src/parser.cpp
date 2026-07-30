@@ -24,6 +24,7 @@ private:
     const Token& advance();
 
     bool check(Token type) const;
+    bool checkNext(Token type) const;
     bool isAtEnd() const;
 
     Token consume(Tokentype expType, const std::string& errorMessage);
@@ -34,6 +35,12 @@ private:
     std::unique_ptr<Expr> parseExpression();
     std::unique_ptr<Expr> parsePrimary();
     std:unique_ptr<Stmt> parseLetStatement();
+    std::unique_ptr<Stmt> parseAssignStatement();
+    std::unique_ptr<Stmt> parseSendStatement();
+    std::unique_ptr<Stmt> parseBlockStatement();
+    std::unique_ptr<Stmt> parseIfStatement();
+    std::unique_ptr<Stmt> parseWhileStatement();
+    std::unique_ptr<Stmt> parseExprStatement();
 
 public:
     //construct and intiialize member list (private fields)
@@ -191,15 +198,54 @@ IfStmt   → "if" "(" Expr ")" "then" Block
                ("else" "if" "(" Expr ")" "then" Block)*
                ("else" Block)?
 */
-std::unique_ptr<Stmt> Parser::ifStatement(){
-    consume(TokenType::IF, "expected 'if' at start of if statement");
+
+//WhileStmt    → "while" "(" Expr ")" "then" Block
+std::unique_ptr<Stmt> Parser::parseWhileStatement(){
+    consume(TokenType::WHILE,, "expected 'while' at start of while statement");
     consume(TokenType::LEFT_PAREN, "expected '(' at start of condition");
-    std::unique_ptr<Expr> initializer = parseExpression();
+    std::unique_ptr<Expr> condition = parseExpression();
     consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
     consume(TokenType::THEN, "expected 'then' after condition");
-    std::vector<std::unique_ptr<Stmt>> statements = parseBlockStatement();
+    std::vector<std::unique_ptr<Stmt>> body = parseBlockStatement();
 
-    if(check(TokenType))
+    return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+}
+
+std::unique_ptr<Stmt> Parser::parseIfStatement(){
+
+    std::vector<std::unique_ptr<IfBranch>> branches; 
+    std::unique_ptr<BlockStmt> elsebody = nullptr;
+
+
+    consume(TokenType::IF, "expected 'if' at start of if statement");
+    consume(TokenType::LEFT_PAREN, "expected '(' at start of condition");
+    std::unique_ptr<Expr> condition = parseExpression();
+    consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
+    consume(TokenType::THEN, "expected 'then' after condition");
+    std::unique_ptr<BlockStmt> body = parseBlockStatement();
+    //initial if
+    //could use emplace_back and remove make_unique to not necessarily create a new object in memory
+    branches.push_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+
+    //looping else-ifs 
+    while(check(TokenType::ELSE) && checkNext(TokenType::IF) && !isAtEnd()){
+        consume(TokenType::ELSE, "expected 'else' at start of else-if statement");
+        consume(TokenType::IF, "expected 'if' after else in else-if statement");
+        consume(TokenType::LEFT_PAREN, "expected '(' at start of condition");
+        std::unique_ptr<Expr> condition = parseExpression();
+        consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
+        consume(TokenType::THEN, "expected 'then' after condition");
+        std::unique_ptr<BlockStmt> body = parseBlockStatement();
+        branches.push_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+    }
+
+    if(check(TokenType::ELSE)){
+        //technically this error condition will never occur but whatever
+        consume(TokenType::ELSE, "expected 'else' at start of else statement");
+        elsebody = parseBlockStatement();
+    }
+
+    return std::make_unique<IfStmt>(std::move(branches), std::move(elsebody));
 }
 
 

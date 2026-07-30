@@ -106,6 +106,7 @@ struct LetStmt : Stmt{
 
         // initializer->print(indent + 4);
     }
+};
 
 
 struct SendStmt : Stmt{
@@ -116,7 +117,7 @@ struct SendStmt : Stmt{
         const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
 struct AssignStmt : Stmt{
     std::unique_ptr<Expr> initializer;
@@ -127,7 +128,7 @@ struct AssignStmt : Stmt{
     const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
 struct ExprStmt : Stmt{
     std::unique_ptr<Expr> initializer;
@@ -137,7 +138,7 @@ struct ExprStmt : Stmt{
     const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
 //block will contain 0 or more statements, thus must require a vector
 struct BlockStmt : Stmt{
@@ -148,8 +149,41 @@ struct BlockStmt : Stmt{
     const std::string padding(indent, ' ');
 1       //future text
     }
+};
 
-}
+//while consists of an expression and a blockstmt body
+struct WhileStmt : Stmt{
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<BlockStmt> body;
+
+    WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<BlockStmt> body) : condition(std::move(condition), body(std::move(body)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+};
+
+//an if statement can have 1 or more if branches (includes if or else if)
+//each branch consists of a condition and body
+//the last optional else branch would contain only a body
+
+struct IfBranch{
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<BlockStmt> body;
+};
+
+struct IfStmt : Stmt{
+    std::vector<IfBranch> branches;
+    std::unique_ptr<BlockStmt> elseBody;
+
+    IfStmt(std::vector<IfBranch> branches, std::unique_ptr<BlockStmt> elsebody) : branches(std::move(branches)), elsebody(std::move(elsebody)) {}
+    
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+};
+
 
 
 
