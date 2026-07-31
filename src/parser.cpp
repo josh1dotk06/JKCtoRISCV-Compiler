@@ -479,12 +479,23 @@ std::unique_ptr<Expr> Parser::parseCall(){
 //does not need to be unique_ptr since parseParameters can own them as
 //individual objects in its vector, also since Parameter is not a polymorphic AST node, it just is parameter
 Parameter Parser::parseParameter(){
-    Token varName = consume(TokenType::IDENT, "expected paranemer name");
+    Token varName = consume(TokenType::IDENT, "expected parameter name");
     consume(TokenType::COLON, "expected ':' after parameter name");
     JKCType parType = parseType();
 
     return Parameter(std::move(varName.value), parType);
 }
+
+//Parameters   → Parameter ("," Parameter)*
+std::vector<Parameter> Parser::parseParameters(){
+    std::vector<Parameters> parameters;
+    parameters.push_back(parseParameter());
+    while(check(TokenType::COMMA)){
+        parameters.push_back(parseParameter());
+    }
+    return parameters;
+}
+
 
 
 

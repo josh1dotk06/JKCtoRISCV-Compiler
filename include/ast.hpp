@@ -307,7 +307,7 @@ Parameters   → Parameter ("," Parameter)*
 Parameter    → IDENT ":" Type
 */
 
-struct Parameter{
+struct Parameter : ASTNode{
     std::string name;
     JKCType type;
 
@@ -316,6 +316,15 @@ struct Parameter{
     const std::string padding(indent, ' ');
 1       //future text
     }
+}
+
+struct FunctionDec : ASTNode{
+    std::string name;
+    std::vector<Parameter> parameters;
+    JKCType returnType;
+    std::unique_ptr<BlockStmt> body;
+
+    
 }
 
 
