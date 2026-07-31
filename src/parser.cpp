@@ -39,7 +39,17 @@ private:
     JKCType parseType();
 
     std::unique_ptr<Expr> parseExpression();
+
+    std::unique_ptr<Expr> parseOr();
+    std::unique_ptr<Expr> parseAnd();
+    std::unique_ptr<Expr> parseComparison();
+    std::unique_ptr<Expr> parseAddition();
+    std::unique_ptr<Expr> parseMultiplication();
+    std::unique_ptr<Expr> parseUnary();
+    std::unique_ptr<Expr> parseCall();
     std::unique_ptr<Expr> parsePrimary();
+    std::unique_ptr<Expr> parseCall(); //function call expressions
+
     std:unique_ptr<Stmt> parseLetStatement();
     std::unique_ptr<Stmt> parseAssignStatement();
     std::unique_ptr<Stmt> parseSendStatement();
@@ -335,8 +345,23 @@ std::unique_ptr<Expr> Parser::parsePrimary(){
 
 //unary is the only one different with 1 operand
 std::unique_ptr<Expr> Parser::parseUnary(){
-    std::unique_ptr<Expr> operand = parsePrimary();
-    
+
+    if(check(TokenType::NOT) || check(TokenType::MINUS)){
+        TokenType opToken = advance().type;
+        UnaryOperator op;
+        if(opToken == TokenType::NOT) op = UnaryOperator::Not;
+        else op = UnaryOperator::Negate;
+
+        //chain repeated unary operators
+        //NOT NOT NOT NOT ... TRUE 
+        std::unique_ptr<Expr> operand = parseUnary();
+
+        return std::make_unique<UnaryExpr>(std::move(operand), op);
+    }
+
+    //assuming no unary operator, just continue to higher precedence
+    return parsePrimary;
+
 }
 
 
@@ -351,7 +376,7 @@ std::unique_ptr<Expr> Parser::parseMultiplication(){
         TokenType opToken = advance().type;
 
         std::unique_ptr<Expr> right = parseUnary();
-        BinaryOperator = op;
+        BinaryOperator op;
         if(opToken == TokenType::TIMES) op = BinaryOperator::Multiply;
         else op = BinaryOperator::Divide;
 
@@ -423,6 +448,48 @@ std::unique_ptr<Expr> Parser::parseOr(){
     }
     return left;
 }
+
+
+//function related parsers
+//last bit of stuff
+
+std::unique_ptr<Expr> Parser::parseCall(){
+
+    std::vector<std::unique_ptr<Expr>> arguments;
+
+    Token varName = consume(TokenType::IDENT, "Expected function name");
+    consume(TokenType::LEFT_PAREN, "expected '(' after function name");
+    //function calls may have 0 arguments, need do-while
+
+    if(!check(TokenType::RIGH_PAREN)){
+        do{
+            arguments.push_back(parseExpression());
+            if(!check(TokenType::COMMA)) break; //no more arguments
+            consume(TokenType::COMMA, "expected command between arguments");
+        } while(true);
+    }
+    
+
+    consume(TokenType::RIGHT_PAREN, "expected ')' after arguments");
+    
+    return std::make_unique<CallExpr>(std::move(arguments), std::move(varName.value));
+}
+
+//Parameter    → IDENT ":" Type
+//does not need to be unique_ptr since parseParameters can own them as
+//individual objects in its vector, also since Parameter is not a polymorphic AST node, it just is parameter
+Parameter Parser::parseParameter(){
+    Token varName = consume(TokenType::IDENT, "expected paranemer name");
+    consume(TokenType::COLON, "expected ':' after parameter name");
+    JKCType parType = parseType();
+
+    return Parameter(std::move(varName.value), parType);
+}
+
+
+
+
+
 
 
 

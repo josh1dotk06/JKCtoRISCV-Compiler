@@ -154,6 +154,7 @@ struct VariableExpr : Expr {
     }
 };
 
+
 struct UnaryExpr : Expr{
     std::unique_ptr<Expr> operand;
     UnaryOperator op;
@@ -281,6 +282,46 @@ struct IfStmt : Stmt{
 1       //future text
     }
 };
+
+//function related stuff//
+//last bit of stuff we need to be able to parse
+//since our parser has yet to recognize stuff like calc(x,y) or fn func1(. . .)
+//or fn main(){} etc
+
+//call expression like fact(5) or add(x,y)
+struct CallExpr : Expr{
+    std::string funcName;
+    std::vector<std::unique_ptr<Expr>> arguments;
+
+    explicit CallExpr(std::vector<std::unique_ptr<Expr>> arguments, std::string funcName) : arguments(std::move(arguments)), funcName(std::move(funcName)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+//require parameters for function declarations
+/*
+Function     → "fn" IDENT "(" Parameters? ")" "->" Type Block
+Parameters   → Parameter ("," Parameter)*
+Parameter    → IDENT ":" Type
+*/
+
+struct Parameter{
+    std::string name;
+    JKCType type;
+
+    Parameter(name(std::string name, JKCType type) : name(std::move(name), type(type)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+}
+
+
+
+
+
 
 
 
