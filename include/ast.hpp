@@ -311,7 +311,7 @@ struct Parameter : ASTNode{
     std::string name;
     JKCType type;
 
-    Parameter(name(std::string name, JKCType type) : name(std::move(name), type(type)) {}
+    Parameter(std::string name, JKCType type) : name(std::move(name)), type(type)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
 1       //future text
@@ -324,7 +324,11 @@ struct FunctionDec : ASTNode{
     JKCType returnType;
     std::unique_ptr<BlockStmt> body;
 
-    
+    FunctionDec(std::string name, std::vector<Parameter> parameters, JKCType returnType, std::unique_ptr<BlockStmt> body) : name(std::move(name)), parameters(std::move(parameters)), returnType(returnType), body(std::move(body)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
 }
 
 

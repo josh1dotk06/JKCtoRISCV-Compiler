@@ -478,6 +478,7 @@ std::unique_ptr<Expr> Parser::parseCall(){
 //Parameter    → IDENT ":" Type
 //does not need to be unique_ptr since parseParameters can own them as
 //individual objects in its vector, also since Parameter is not a polymorphic AST node, it just is parameter
+//helper function for parameters
 Parameter Parser::parseParameter(){
     Token varName = consume(TokenType::IDENT, "expected parameter name");
     consume(TokenType::COLON, "expected ':' after parameter name");
@@ -487,13 +488,33 @@ Parameter Parser::parseParameter(){
 }
 
 //Parameters   → Parameter ("," Parameter)*
+//wow good!
 std::vector<Parameter> Parser::parseParameters(){
-    std::vector<Parameters> parameters;
+    std::vector<Parameter> parameters;
     parameters.push_back(parseParameter());
     while(check(TokenType::COMMA)){
+        advance();
         parameters.push_back(parseParameter());
     }
     return parameters;
+}
+
+//Function → "fn" IDENT "(" Parameters? ")" "->" Type Block
+std::unique_ptr<FunctionDec> Parser::parseFunction(){
+    consume(TokenType::FN, "expected 'fn' at start of function declaration");
+    Token funcName = consume(TokenType::IDENT, "expected function name after fn");
+    consume(TokenType::LEFT_PAREN, "expected '(' at the start of parameter declaration");
+    std::vector<Parameter> parameters;
+
+    //assuming there ARE parameters (0 param functions can skip this)
+    if(!check(TokenType::RIGHT_PAREN)) parameters = parseParameters;
+
+    consume(TokenType::RIGHT_PAREN, "expected ')' at the end of parameter declaration");
+    consume(TokenType::ARROW, "expected '->' after parameter declaration");
+    JKCType funcType = parseType();
+    std::unique_ptr<BlockStmt> body = parseBlockStatement();
+
+    return make_unique<FunctionDec>(std::move(funcName.value), std::move(parameters), funcType, std::move(body));
 }
 
 
