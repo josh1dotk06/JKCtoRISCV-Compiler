@@ -284,26 +284,6 @@ void printTokens(const vector<Token>& tokens)
 }
 
 
-    int main()
-{
-
-    string sourceCode
-        = "int main() { float x = 3.14; float y=3.15; "
-          "float z=x+y; return 0; }";
-
-
-    LexicalAnalyzer lexer(sourceCode);
-    
-    vector<Token> tokens = lexer.tokenize();
-
-
-    cout << "Source code: " << sourceCode << endl << endl;
-
-    cout << "Tokens Generate by Lexical Analyzer:" << endl;
-    printTokens(tokens);
-    return 0;
-}
-
 
 
 

@@ -60,6 +60,7 @@ private:
 
 public:
     //construct and intiialize member list (private fields)
+    //dont use move here since its a const reference, we are modifying the og
     Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), position(0) {}
 
     std::unique_ptr<Stmt> parseStatement();
@@ -277,7 +278,10 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
 //a complete expression parser will support precedence, not now though
 
 std::unique_ptr<Expr> Parser::parseExpression(){
-    return parsePrimary();
+    //parse expression will begin with the lowest precedence parser
+    //then it will work its way up by continously calling higher and higher
+    //parsers until it gets to the one it needs to
+    return parseOr();
 }
 
 
@@ -515,6 +519,19 @@ std::unique_ptr<FunctionDec> Parser::parseFunction(){
     std::unique_ptr<BlockStmt> body = parseBlockStatement();
 
     return make_unique<FunctionDec>(std::move(funcName.value), std::move(parameters), funcType, std::move(body));
+}
+
+//Program → Function*
+//in essence, the program is basically just a vector of functions
+//the program must contain at least one function (main) to run raw code
+//this is the top node of the recursive descent
+std::unique_ptr<Program> Parser::parseProgram(){
+    std::vector<std::unique_ptr<FunctionDec>> functions;
+    while(!isAtEnd){
+        functions.push_back(parseFunction());
+    }
+
+    return make_unique<Program>(std::move(functions));
 }
 
 

@@ -298,7 +298,7 @@ struct CallExpr : Expr{
     const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
 //require parameters for function declarations
 /*
@@ -316,7 +316,7 @@ struct Parameter : ASTNode{
     const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
 struct FunctionDec : ASTNode{
     std::string name;
@@ -329,10 +329,19 @@ struct FunctionDec : ASTNode{
     const std::string padding(indent, ' ');
 1       //future text
     }
-}
+};
 
+//Program      → Function*
+//program node is just a vector of functions
+struct Program : ASTNode{
+    std::vector<std::unique_ptr<FunctionDec>> functions;
 
-
+    Program(std::vector<std::unique_ptr<FunctionDec>> functions) : functions(std::move(functions)) {}
+    void print(int indent = 0) const override {
+    const std::string padding(indent, ' ');
+1       //future text
+    }
+};
 
 
 
