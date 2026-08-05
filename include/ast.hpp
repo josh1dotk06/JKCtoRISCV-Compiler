@@ -3,11 +3,12 @@
 //the whole point of this file is to create the structures to represent the parsed/ast
 //i.e initializing the AST node classes
 //program in memory, also the print stuff are just there for debugging and visualization
-#include <stdint>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 //only var types, not token types
 enum class JKCType{
@@ -44,7 +45,7 @@ inline std::string getJKCTypeName(JKCType type){
     switch(type){
         case JKCType::Int:
             return "int";
-        case JkCType::Bool:
+        case JKCType::Bool:
             return "bool";
     }
 
@@ -56,7 +57,7 @@ inline std::string getUnaryOperatorName(UnaryOperator op){
         case UnaryOperator::Not:
             return "NOT";
         
-        case UnaryOperator::Negate:
+        case UnaryOperator::Negation:
             return "-";
     }
     return "unknown";
@@ -110,7 +111,7 @@ struct ASTNode{
     //e.g new allocates memory, this memory stays until its freed
     virtual ~ASTNode() = default;
     virtual void print(int indent = 0) const = 0;
-}
+};
 
 //expr base clasee
 struct Expr : ASTNode{
@@ -139,7 +140,7 @@ struct BoolLiteralExpr : Expr{
     explicit BoolLiteralExpr(bool value) : value(value) {}
 
     void print(int indent = 0) const override{
-        std::cout << std::string(indent, ' ') << "IntegerLiteral(" << (value ? "true" : "false") << ")\n";
+        std::cout << std::string(indent, ' ') << "BoolLiteral(" << (value ? "true" : "false") << ")\n";
     }
 };
 
@@ -147,7 +148,7 @@ struct BoolLiteralExpr : Expr{
 struct VariableExpr : Expr {
     std::string name;
 
-    explicit VariableExpr(std::string name) : name(std::move(name) {}
+    explicit VariableExpr(std::string name) : name(std::move(name)) {}
 
     void print(int indent = 0) const override {
         std::cout << std::string(indent, ' ') << "Variable(" << name << ")\n";
@@ -163,9 +164,9 @@ struct UnaryExpr : Expr{
 
     void print(int indent = 0) const override {
         const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
-}
+};
 
 //binary expression will consist of a left exp, right exp, and an operator inbetween
 struct BinaryExpr : Expr {
@@ -177,9 +178,9 @@ struct BinaryExpr : Expr {
     
     void print(int indent = 0) const override {
         const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
-}
+};
 
 //let statement like let x : int = 5
 struct LetStmt : Stmt{
@@ -189,8 +190,8 @@ struct LetStmt : Stmt{
     std::unique_ptr<Expr> initializer;
 
     LetStmt(std::string name, JKCType decType, std::unique_ptr<Expr> initializer)
-    : name(std::move(name));
-    decType(decType);
+    : name(std::move(name)),
+    decType(decType),
     initializer(std::move(initializer)) {}
 
     void print(int indent = 0) const override {
@@ -210,22 +211,22 @@ struct LetStmt : Stmt{
 
 struct SendStmt : Stmt{
     std::unique_ptr<Expr> initializer;
-    SendStmt(std::unique_ptr<Expr> initializer) : initializer(std::move(intitializer)) {}
+    SendStmt(std::unique_ptr<Expr> initializer) : initializer(std::move(initializer)) {}
 
     void print(int indent = 0) const override {
         const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
 struct AssignStmt : Stmt{
     std::unique_ptr<Expr> initializer;
     std::string name;
-    AssignStmt(std::string name, std::unique_ptr<Expr> initializer) : initializer(std::move(initializer)); name(std::move(name)) {}
+    AssignStmt(std::string name, std::unique_ptr<Expr> initializer) : initializer(std::move(initializer)), name(std::move(name)) {}
     
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -235,7 +236,7 @@ struct ExprStmt : Stmt{
     
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -246,7 +247,7 @@ struct BlockStmt : Stmt{
     explicit BlockStmt(std::vector<std::unique_ptr<Stmt>> statements) : statements(std::move(statements)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -255,10 +256,10 @@ struct WhileStmt : Stmt{
     std::unique_ptr<Expr> condition;
     std::unique_ptr<BlockStmt> body;
 
-    WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<BlockStmt> body) : condition(std::move(condition), body(std::move(body)) {}
+    WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<BlockStmt> body) : condition(std::move(condition)), body(std::move(body)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -269,17 +270,19 @@ struct WhileStmt : Stmt{
 struct IfBranch{
     std::unique_ptr<Expr> condition;
     std::unique_ptr<BlockStmt> body;
+
+    IfBranch(std::unique_ptr<Expr> condition, std::unique_ptr<BlockStmt> body) : condition(std::move(condition)), body(std::move(body)) {}
 };
 
 struct IfStmt : Stmt{
     std::vector<IfBranch> branches;
     std::unique_ptr<BlockStmt> elseBody;
 
-    IfStmt(std::vector<IfBranch> branches, std::unique_ptr<BlockStmt> elsebody) : branches(std::move(branches)), elsebody(std::move(elsebody)) {}
+    IfStmt(std::vector<IfBranch> branches, std::unique_ptr<BlockStmt> elseBody) : branches(std::move(branches)), elseBody(std::move(elseBody)) {}
     
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+      //future text
     }
 };
 
@@ -290,13 +293,14 @@ struct IfStmt : Stmt{
 
 //call expression like fact(5) or add(x,y)
 struct CallExpr : Expr{
-    std::string funcName;
+
     std::vector<std::unique_ptr<Expr>> arguments;
+    std::string funcName;
 
     explicit CallExpr(std::vector<std::unique_ptr<Expr>> arguments, std::string funcName) : arguments(std::move(arguments)), funcName(std::move(funcName)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -311,10 +315,10 @@ struct Parameter : ASTNode{
     std::string name;
     JKCType type;
 
-    Parameter(std::string name, JKCType type) : name(std::move(name)), type(type)) {}
+    Parameter(std::string name, JKCType type) : name(std::move(name)), type(type) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -327,7 +331,7 @@ struct FunctionDec : ASTNode{
     FunctionDec(std::string name, std::vector<Parameter> parameters, JKCType returnType, std::unique_ptr<BlockStmt> body) : name(std::move(name)), parameters(std::move(parameters)), returnType(returnType), body(std::move(body)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
@@ -339,16 +343,10 @@ struct Program : ASTNode{
     Program(std::vector<std::unique_ptr<FunctionDec>> functions) : functions(std::move(functions)) {}
     void print(int indent = 0) const override {
     const std::string padding(indent, ' ');
-1       //future text
+       //future text
     }
 };
 
-
-
-
-
-
-};
 
 
 

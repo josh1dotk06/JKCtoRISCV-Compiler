@@ -7,6 +7,7 @@
 
 #include "ast.hpp"
 #include "token.hpp"
+#include "parser.hpp"
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -14,58 +15,6 @@
 
 #include <stdexcept>
 #include <utility>
-
-//parser basically = lexer, it stores string input, and position
-//except this time it moves through the tokens rather than through the source code
-class Parser{
-private:
-    const std::vector<Token>& tokens
-    std::size_t position;
-
-    //token functions prototype (declarations)
-    //read next token object in input stream, direct reference to token (read only thus)
-    //second const promises not to modify any member variables of the parser class
-    //also member variables are just private fields (in java terms)
-    const Token& peek() const;
-    const Token& advance();
-
-    bool check(Token type) const;
-    bool checkNext(Token type) const;
-    bool isAtEnd() const;
-
-    Token consume(Tokentype expType, const std::string& errorMessage);
-
-    //GRAMMAR PARSERS
-    JKCType parseType();
-
-    std::unique_ptr<Expr> parseExpression();
-
-    std::unique_ptr<Expr> parseOr();
-    std::unique_ptr<Expr> parseAnd();
-    std::unique_ptr<Expr> parseComparison();
-    std::unique_ptr<Expr> parseAddition();
-    std::unique_ptr<Expr> parseMultiplication();
-    std::unique_ptr<Expr> parseUnary();
-    std::unique_ptr<Expr> parseCall();
-    std::unique_ptr<Expr> parsePrimary();
-    std::unique_ptr<Expr> parseCall(); //function call expressions
-
-    std:unique_ptr<Stmt> parseLetStatement();
-    std::unique_ptr<Stmt> parseAssignStatement();
-    std::unique_ptr<Stmt> parseSendStatement();
-    std::unique_ptr<Stmt> parseBlockStatement();
-    std::unique_ptr<Stmt> parseIfStatement();
-    std::unique_ptr<Stmt> parseWhileStatement();
-    std::unique_ptr<Stmt> parseExprStatement();
-
-public:
-    //construct and intiialize member list (private fields)
-    //dont use move here since its a const reference, we are modifying the og
-    Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), position(0) {}
-
-    std::unique_ptr<Stmt> parseStatement();
-
-};
 
 
 //actual parser logic
@@ -83,7 +32,7 @@ bool Parser::check(TokenType type) const {
 
 //needed for detecting assignment statement
 bool Parser::checkNext(TokenType type) const {
-    if(position+1 >= token.size()) return false;
+    if(position+1 >= tokens.size()) return false;
     return tokens.at(position+1).type == type;
 }
 
@@ -104,7 +53,7 @@ const Token& Parser::advance() {
 //consume
 //check if curr = type, if so then move past it, if not then return error
 
-Token Parser::consume(Tokentype expType, const std::string& errorMessage){
+Token Parser::consume(TokenType expType, const std::string& errorMessage){
     if(check(expType)){
         return advance();
     }
@@ -112,7 +61,7 @@ Token Parser::consume(Tokentype expType, const std::string& errorMessage){
     //account for eof
     //.value was the actual character/string of the token
     //i.e, would be the variable name if it is an IDENT token
-    std::string found = peek().value();
+    std::string found = peek().value;
     if(found.empty()) found = "end of file";
 
     throw std::runtime_error(errorMessage + " Found: '"+ found + "'.");
@@ -184,7 +133,7 @@ std::unique_ptr<Stmt> Parser::parseAssignStatement(){
     std::unique_ptr<Expr> initializer = parseExpression();
     consume(TokenType::SEMICOLON, "expected ; at end of assignment statement");
 
-    return std::make_unique<AssignStmt>(varName.value, std::move(intializer));
+    return std::make_unique<AssignStmt>(varName.value, std::move(initializer));
 }
 
 //expr statement 
@@ -200,7 +149,7 @@ std::unique_ptr<Stmt> Parser::parseExprStatement(){
 //* = 0 or more statements
 //Block        → "{" Statement* "}"
 //logic is to just keep consuming statements into the vector
-std::unique_ptr<Stmt> Parser::parseBlockStatement(){
+std::unique_ptr<BlockStmt> Parser::parseBlockStatement(){
     consume(TokenType::LEFT_BRACE, "expected '{' at start of block");
     std::vector<std::unique_ptr<Stmt>> statements;
     while(!check(TokenType::RIGHT_BRACE) && !isAtEnd()){
@@ -219,19 +168,19 @@ IfStmt   → "if" "(" Expr ")" "then" Block
 
 //WhileStmt    → "while" "(" Expr ")" "then" Block
 std::unique_ptr<Stmt> Parser::parseWhileStatement(){
-    consume(TokenType::WHILE,, "expected 'while' at start of while statement");
+    consume(TokenType::WHILE, "expected 'while' at start of while statement");
     consume(TokenType::LEFT_PAREN, "expected '(' at start of condition");
     std::unique_ptr<Expr> condition = parseExpression();
     consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
     consume(TokenType::THEN, "expected 'then' after condition");
-    std::vector<std::unique_ptr<Stmt>> body = parseBlockStatement();
+    std::unique_ptr<BlockStmt> body = parseBlockStatement();
 
     return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
 }
 
 std::unique_ptr<Stmt> Parser::parseIfStatement(){
 
-    std::vector<std::unique_ptr<IfBranch>> branches; 
+    std::vector<IfBranch> branches; 
     std::unique_ptr<BlockStmt> elsebody = nullptr;
 
 
@@ -243,7 +192,7 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
     std::unique_ptr<BlockStmt> body = parseBlockStatement();
     //initial if
     //could use emplace_back and remove make_unique to not necessarily create a new object in memory
-    branches.push_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+    branches.emplace_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
 
     //looping else-ifs 
     while(check(TokenType::ELSE) && checkNext(TokenType::IF) && !isAtEnd()){
@@ -254,7 +203,7 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
         consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
         consume(TokenType::THEN, "expected 'then' after condition");
         std::unique_ptr<BlockStmt> body = parseBlockStatement();
-        branches.push_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+        branches.emplace_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
     }
 
     if(check(TokenType::ELSE)){
@@ -345,6 +294,10 @@ std::unique_ptr<Expr> Parser::parsePrimary(){
         consume(TokenType::RIGHT_PAREN, "expected ')' after expression");
         return exp;
     }
+
+    //error check
+    std::string found = peek().value.empty() ? "end of file" : peek().value;
+    throw std::runtime_error("expected expression. Found: '" + found + "'.");
 }
 
 //unary is the only one different with 1 operand
@@ -354,7 +307,7 @@ std::unique_ptr<Expr> Parser::parseUnary(){
         TokenType opToken = advance().type;
         UnaryOperator op;
         if(opToken == TokenType::NOT) op = UnaryOperator::Not;
-        else op = UnaryOperator::Negate;
+        else op = UnaryOperator::Negation;
 
         //chain repeated unary operators
         //NOT NOT NOT NOT ... TRUE 
@@ -364,7 +317,7 @@ std::unique_ptr<Expr> Parser::parseUnary(){
     }
 
     //assuming no unary operator, just continue to higher precedence
-    return parsePrimary;
+    return parseCall();
 
 }
 
@@ -394,12 +347,12 @@ std::unique_ptr<Expr> Parser::parseMultiplication(){
 
 std::unique_ptr<Expr> Parser::parseAddition(){
     std::unique_ptr<Expr> left = parseMultiplication();
-    while(check(TokenType::ADD) && check(TokenType::MINUS)){
+    while(check(TokenType::PLUS) || check(TokenType::MINUS)){
         TokenType opToken = advance().type;
 
-        std::unique_ptr<Expr> = parseMultiplication();
+        std::unique_ptr<Expr> right = parseMultiplication();
         BinaryOperator op;
-        if(opToken == TokenType::ADD) op = BinaryOperator::Add;
+        if(opToken == TokenType::PLUS) op = BinaryOperator::Add;
         else op = BinaryOperator::Subtract;
 
         left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
@@ -420,11 +373,12 @@ std::unique_ptr<Expr> Parser::parseComparison(){
 
         std::unique_ptr<Expr> right = parseAddition();
         BinaryOperator op;
-        if(opToken == TokenType::IS) op = BinaryOpeartor::Equal;
+        if(opToken == TokenType::IS) op = BinaryOperator::Equal;
         else if(opToken == TokenType::IS_GT) op = BinaryOperator::GreaterThan;
         else if(opToken == TokenType::IS_GTE) op = BinaryOperator::GreaterThanEqual;
         else if(opToken == TokenType::IS_LT) op = BinaryOperator::LessThan;
         else if(opToken == TokenType::IS_LTE) op = BinaryOperator::LessThanEqual;
+        advance();
 
         left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
     }
@@ -465,11 +419,11 @@ std::unique_ptr<Expr> Parser::parseCall(){
     consume(TokenType::LEFT_PAREN, "expected '(' after function name");
     //function calls may have 0 arguments, need do-while
 
-    if(!check(TokenType::RIGH_PAREN)){
+    if(!check(TokenType::RIGHT_PAREN)){
         do{
             arguments.push_back(parseExpression());
             if(!check(TokenType::COMMA)) break; //no more arguments
-            consume(TokenType::COMMA, "expected command between arguments");
+            consume(TokenType::COMMA, "expected comma between arguments");
         } while(true);
     }
     
@@ -511,14 +465,14 @@ std::unique_ptr<FunctionDec> Parser::parseFunction(){
     std::vector<Parameter> parameters;
 
     //assuming there ARE parameters (0 param functions can skip this)
-    if(!check(TokenType::RIGHT_PAREN)) parameters = parseParameters;
+    if(!check(TokenType::RIGHT_PAREN)) parameters = parseParameters();
 
     consume(TokenType::RIGHT_PAREN, "expected ')' at the end of parameter declaration");
     consume(TokenType::ARROW, "expected '->' after parameter declaration");
     JKCType funcType = parseType();
     std::unique_ptr<BlockStmt> body = parseBlockStatement();
 
-    return make_unique<FunctionDec>(std::move(funcName.value), std::move(parameters), funcType, std::move(body));
+    return std::make_unique<FunctionDec>(std::move(funcName.value), std::move(parameters), funcType, std::move(body));
 }
 
 //Program → Function*
@@ -527,11 +481,11 @@ std::unique_ptr<FunctionDec> Parser::parseFunction(){
 //this is the top node of the recursive descent
 std::unique_ptr<Program> Parser::parseProgram(){
     std::vector<std::unique_ptr<FunctionDec>> functions;
-    while(!isAtEnd){
+    while(!isAtEnd()){
         functions.push_back(parseFunction());
     }
 
-    return make_unique<Program>(std::move(functions));
+    return std::make_unique<Program>(std::move(functions));
 }
 
 
