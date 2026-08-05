@@ -51,7 +51,7 @@ private:
 
     Parameter parseParameter();
     std::vector<Parameter> parseParameters();
-    std::unique_ptr<FunctionDec> Parser::parseFunction();
+    std::unique_ptr<FunctionDec> parseFunction();
 
 
 public:

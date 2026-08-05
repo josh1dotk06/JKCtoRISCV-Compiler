@@ -192,7 +192,7 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
     std::unique_ptr<BlockStmt> body = parseBlockStatement();
     //initial if
     //could use emplace_back and remove make_unique to not necessarily create a new object in memory
-    branches.emplace_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+    branches.emplace_back(std::move(condition), std::move(body));
 
     //looping else-ifs 
     while(check(TokenType::ELSE) && checkNext(TokenType::IF) && !isAtEnd()){
@@ -203,7 +203,7 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
         consume(TokenType::RIGHT_PAREN, "expected ')' at end of condition");
         consume(TokenType::THEN, "expected 'then' after condition");
         std::unique_ptr<BlockStmt> body = parseBlockStatement();
-        branches.emplace_back(std::make_unique<IfBranch>(std::move(condition), std::move(body)));
+        branches.emplace_back(std::move(condition), std::move(body));
     }
 
     if(check(TokenType::ELSE)){
@@ -378,7 +378,6 @@ std::unique_ptr<Expr> Parser::parseComparison(){
         else if(opToken == TokenType::IS_GTE) op = BinaryOperator::GreaterThanEqual;
         else if(opToken == TokenType::IS_LT) op = BinaryOperator::LessThan;
         else if(opToken == TokenType::IS_LTE) op = BinaryOperator::LessThanEqual;
-        advance();
 
         left = std::make_unique<BinaryExpr>(std::move(left), op, std::move(right));
     }
@@ -412,6 +411,10 @@ std::unique_ptr<Expr> Parser::parseOr(){
 //last bit of stuff
 
 std::unique_ptr<Expr> Parser::parseCall(){
+
+    //next layer is parsePrimary, fall back to this assuming not a function call
+    if(!(check(TokenType::IDENT) && checkNext(TokenType::LEFT_PAREN))) return parsePrimary();
+
 
     std::vector<std::unique_ptr<Expr>> arguments;
 
