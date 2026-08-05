@@ -247,7 +247,8 @@ precedence rules:
 */
 
 
-//will support stuff like let x : int = 5, or let y : bool = true;
+//will support parsing simple numbers like 2 3 or 21, t/f booleans, and variables like x,y etc
+//this will parse and return the most fundamental nodes (aka the leaf nodes)
 std::unique_ptr<Expr> Parser::parsePrimary(){
 
     //primary expressions are int literals, bool literals, and variables (IDENT)
@@ -287,7 +288,7 @@ std::unique_ptr<Expr> Parser::parsePrimary(){
 
     //(expr) is also a valid primary expression
     //technically (3+4) requires the binary expression functionality
-    //but it is still considered a primary expression due to grouping
+    //but it is still considered a primary expression due to grouping precedence
     else if(check(TokenType::LEFT_PAREN)){
         advance();
         std::unique_ptr<Expr> exp = parseExpression();

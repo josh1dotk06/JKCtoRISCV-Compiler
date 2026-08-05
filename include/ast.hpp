@@ -123,7 +123,7 @@ struct Stmt : ASTNode{
 
 };
 
-//repr an integer literal like 5 or 22
+//represent an integer literal like 5 or 22
 struct IntegerLiteralExpr : Expr{
     std::int64_t value;
     //these explciit things are constructors btw
