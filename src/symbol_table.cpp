@@ -36,8 +36,10 @@ const VariableSymbol* SymbolTable::lookupVariable(const std::string& name) const
     //also rbegin returns an iterator, which we dereference (similar to lowerbound)
     for(auto scope = scopes.rbegin(); scope != scopes.rend(); ++scope){
         auto match = (*scope).find(name);
-        if(match != (*scope).end()) return &(*match).second; //gives the VariableSymbol
-    }
+        if(match != (*scope).end()) return &(*match).second; //gives the pointer VariableSymbol
+    }   //the & is infront, meaning its a address of operator, not reference operator
+
+    return nullptr;
 }
 bool SymbolTable::variableExistsInCurrentScope(const std::string& name){
     if(scopes.empty()) return false;
