@@ -10,6 +10,7 @@
 std::string errormsg(std::string type1, std::string type2){
     return "Expected " + type1 + ", got " + type2;
 }
+//test
 
 void TypeChecker::checkLetStmt(const LetStmt& stmt){
     if(symbols.variableExistsInCurrentScope(stmt.name)){
@@ -89,5 +90,5 @@ void TypeChecker::checkIfStmt(const IfStmt& stmt){
 }
 
 void TypeChecker::checkBlockStmt(const BlockStmt& stmt){
-    
+
 }
