@@ -17,6 +17,18 @@ private:
     void checkSendStmt(const SendStmt& stmt);
     void checkWhileStmt(const WhileStmt& stmt);
     void checkIfStmt(const IfStmt& stmt);
+    void checkExprStmt(const ExprStmt& stmt);
+
+    void checkStmt(const Stmt& stmt);
+    void checkBlockStmt(const BlockStmt& stmt);
+
+    JKCType checkExpr(const Expr& expr);
+    JKCType checkIntegerLiteralExpr(const IntegerLiteralExpr& expr);
+    JKCType checkBoolLiteralExpr(const BoolLiteralExpr& expr);
+    JKCType checkVariableExpr(const VariableExpr& expr);
+    JKCType checkBinaryExpr(const BinaryExpr& expr);
+    JKCType checkUnaryExpr(const UnaryExpr& expr);
+    JKCType checkCallExpr(const CallExpr& expr);
 
 public:
     void checkProgram(const Program& program);
