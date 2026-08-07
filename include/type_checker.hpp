@@ -10,8 +10,13 @@
 class TypeChecker{
 private:
     SymbolTable symbols;
+    const FunctionDec* currentFunction = nullptr; //what func were curr in
+
     void checkLetStmt(const LetStmt& stmt);
     void checkAssignStmt(const AssignStmt& stmt);
+    void checkSendStmt(const SendStmt& stmt);
+    void checkWhileStmt(const WhileStmt& stmt);
+    void checkIfStmt(const IfStmt& stmt);
 
 public:
     void checkProgram(const Program& program);
