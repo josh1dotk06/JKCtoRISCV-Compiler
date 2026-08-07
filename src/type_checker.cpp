@@ -11,6 +11,7 @@ std::string errormsg(std::string type1, std::string type2){
     return "Expected " + type1 + ", got " + type2;
 }
 //test
+//test 2
 
 void TypeChecker::checkLetStmt(const LetStmt& stmt){
     if(symbols.variableExistsInCurrentScope(stmt.name)){
