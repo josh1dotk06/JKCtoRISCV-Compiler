@@ -30,6 +30,8 @@ private:
     JKCType checkUnaryExpr(const UnaryExpr& expr);
     JKCType checkCallExpr(const CallExpr& expr);
 
+    void checkFunction(const FunctionDec& func);
+
 public:
     void checkProgram(const Program& program);
     void checkStmt(const Stmt& stmt);

@@ -1,5 +1,8 @@
 #pragma once
 //traverse ast and type check using symbol table
+//it traverses the ast in the same recursive-descent way, in order to 
+//reach every node and check it
+//thus we write a checker for each individual node grammar
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -63,6 +66,11 @@ void TypeChecker::checkSendStmt(const SendStmt& stmt){
     }
 }
 
+//exprstmt only consists of the initializer (expression)
+void TypeChecker::checkExprStmt(const ExprStmt& stmt){
+    checkExpr(*stmt.initializer);
+}
+
 //WhileStmt → "while" "(" Expr ")" "then" Block
 //checks: ensure expr type is type bool, 
 void TypeChecker::checkWhileStmt(const WhileStmt& stmt){
@@ -71,7 +79,7 @@ void TypeChecker::checkWhileStmt(const WhileStmt& stmt){
         throw std::runtime_error("while condition must be of type boolean");
     }
 
-    //type check loop body later here
+    checkBlockStmt(*stmt.body);
 
 }
 
@@ -80,14 +88,16 @@ void TypeChecker::checkWhileStmt(const WhileStmt& stmt){
 //already verified that 
 void TypeChecker::checkIfStmt(const IfStmt& stmt){
 
-    for(auto& branch : stmt.branches){
+    for(const auto& branch : stmt.branches){
         JKCType conditionType = checkExpr(*(branch.condition));
         if(conditionType != JKCType::Bool){
             throw std::runtime_error("if-else condition must be of type boolean");
         }
-        //check individual bodys
+        checkBlockStmt(*branch.body);
     }
-    //also check the final else body if it exists
+    if((stmt.elseBody) != nullptr){
+        checkBlockStmt(*stmt.elseBody);
+    }
 }
 
 void TypeChecker::checkStmt(const Stmt& stmt){
@@ -139,7 +149,7 @@ JKCType TypeChecker::checkVariableExpr(const VariableExpr& expr){
 
 //check to ensure that the 2 operands are not of different type
 //and that the operands must be a specific type depending on the operation
-JKCType checkBinaryExpr(const BinaryExpr& expr){
+JKCType TypeChecker::checkBinaryExpr(const BinaryExpr& expr){
     BinaryOperator opr = expr.op;
     JKCType typeLeft = checkExpr(*(expr.left));
     JKCType typeRight = checkExpr(*(expr.right));
@@ -207,5 +217,56 @@ JKCType TypeChecker::checkCallExpr(const CallExpr& expr){
         i++;
     }
 
-    return (*function).returnType;
+    return (*function).type;
 }
+
+//expression dispatch function
+JKCType TypeChecker::checkExpr(const Expr& expr){
+    if(auto intLitExpr = dynamic_cast<const IntegerLiteralExpr*>(&expr)) checkIntegerLiteralExpr(*intLitExpr);
+    else if(auto boolLitExpr = dynamic_cast<const BoolLiteralExpr*>(&expr)) checkBoolLiteralExpr(*boolLitExpr);
+    else if(auto varExpr = dynamic_cast<const VariableExpr*>(&expr)) checkVariableExpr(*varExpr);
+    else if(auto binaryExpr = dynamic_cast<const BinaryExpr*>(&expr)) checkBinaryExpr(*binaryExpr);
+    else if(auto unaryExpr = dynamic_cast<const UnaryExpr*>(&expr)) checkUnaryExpr(*unaryExpr);
+    else if(auto callExpr = dynamic_cast<const CallExpr*>(&expr)) checkCallExpr(*callExpr);
+}
+
+
+//FUNCTION CHECKERS
+//check to ensure no duplicate params, main purpose is to set current func and declare variables
+void TypeChecker::checkFunction(const FunctionDec& func){
+
+    //address of the func, we set the current function to it
+    currentFunction = &func;
+
+    symbols.enterScope();
+
+    for(const auto& param : func.parameters){
+        if(!symbols.declareVariable(param.name, param.type, VariableKind::PARAMETER)){
+            throw std::runtime_error("duplicate parameter, error");
+        }
+    }
+
+    checkBlockStmt(*func.body);
+
+    //reset
+    symbols.exitScope();
+    currentFunction = nullptr;
+}
+
+
+void TypeChecker::checkProgram(const Program& prog){
+
+    for(const auto& function : prog.functions){
+        std::vector<JKCType> paramtypes;
+        for(const auto& param : function->parameters){
+            paramtypes.push_back(param.type);
+        }
+
+        if(!symbols.declareFunction(function->name, function->returnType, paramtypes)){
+            throw std::runtime_error("error: duplicate function");
+        }
+    }
+
+    for(const auto& function : prog.functions) checkFunction(*function);
+}
+
