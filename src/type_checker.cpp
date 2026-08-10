@@ -3,12 +3,14 @@
 //it traverses the ast in the same recursive-descent way, in order to 
 //reach every node and check it
 //thus we write a checker for each individual node grammar
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include "ast.hpp" //we need jkc type
 #include "symbol_table.hpp"
 #include "type_checker.hpp"
+
 
 std::string errormsg(std::string type1, std::string type2){
     return "Expected " + type1 + ", got " + type2;
@@ -116,12 +118,21 @@ void TypeChecker::checkStmt(const Stmt& stmt){
     else if(auto sendStmt = dynamic_cast<const SendStmt*>(&stmt)) checkSendStmt(*sendStmt);
     else if(auto exprStmt = dynamic_cast<const ExprStmt*>(&stmt)) checkExprStmt(*exprStmt);
     else if(auto blockStmt = dynamic_cast<const BlockStmt*>(&stmt)) checkBlockStmt(*blockStmt);
+    else throw std::runtime_error("unknown statement");
 }
 
 void TypeChecker::checkBlockStmt(const BlockStmt& stmt){
+
+    //each new block should enter a scope (like while and if local scopes
+    //resolve function body, thus it sholdnt call block since it would just
+    //create 2 scopes
+    symbols.enterScope();
+
     for(const auto& singularStmt : stmt.statements){
         checkStmt(*singularStmt);
     }
+
+    symbols.exitScope();
 }
 
 
@@ -171,7 +182,7 @@ JKCType TypeChecker::checkBinaryExpr(const BinaryExpr& expr){
 
     else if(opr == BinaryOperator::And || opr == BinaryOperator::Or){
         if(typeLeft == JKCType::Int || typeRight == JKCType::Int){
-            throw std::runtime_error("incorrect ty[e, expected bool");
+            throw std::runtime_error("incorrect type, expected bool");
         }
         return JKCType::Bool;
     }
@@ -191,7 +202,7 @@ JKCType TypeChecker::checkUnaryExpr(const UnaryExpr& expr){
     }
     else if(opr == UnaryOperator::Negation){
         if(exprType == JKCType::Bool){
-            throw std::runtime_error("incorrct type, expected int");
+            throw std::runtime_error("incorrect type, expected int");
         }
         return JKCType::Int;
     }
@@ -209,6 +220,11 @@ JKCType TypeChecker::checkCallExpr(const CallExpr& expr){
     std::vector<JKCType> params = function->paramTypes;
 
     int i = 0;
+
+    if(expr.arguments.size() != params.size()){
+        throw std::runtime_error("incorrect number of arguments");
+    }
+
     for(const auto& argument : expr.arguments){
         JKCType exprType = checkExpr(*argument);
         if(exprType != params[i]){
@@ -222,12 +238,13 @@ JKCType TypeChecker::checkCallExpr(const CallExpr& expr){
 
 //expression dispatch function
 JKCType TypeChecker::checkExpr(const Expr& expr){
-    if(auto intLitExpr = dynamic_cast<const IntegerLiteralExpr*>(&expr)) checkIntegerLiteralExpr(*intLitExpr);
-    else if(auto boolLitExpr = dynamic_cast<const BoolLiteralExpr*>(&expr)) checkBoolLiteralExpr(*boolLitExpr);
-    else if(auto varExpr = dynamic_cast<const VariableExpr*>(&expr)) checkVariableExpr(*varExpr);
-    else if(auto binaryExpr = dynamic_cast<const BinaryExpr*>(&expr)) checkBinaryExpr(*binaryExpr);
-    else if(auto unaryExpr = dynamic_cast<const UnaryExpr*>(&expr)) checkUnaryExpr(*unaryExpr);
-    else if(auto callExpr = dynamic_cast<const CallExpr*>(&expr)) checkCallExpr(*callExpr);
+    if(auto intLitExpr = dynamic_cast<const IntegerLiteralExpr*>(&expr)) return checkIntegerLiteralExpr(*intLitExpr);
+    else if(auto boolLitExpr = dynamic_cast<const BoolLiteralExpr*>(&expr)) return checkBoolLiteralExpr(*boolLitExpr);
+    else if(auto varExpr = dynamic_cast<const VariableExpr*>(&expr)) return checkVariableExpr(*varExpr);
+    else if(auto binaryExpr = dynamic_cast<const BinaryExpr*>(&expr)) return checkBinaryExpr(*binaryExpr);
+    else if(auto unaryExpr = dynamic_cast<const UnaryExpr*>(&expr)) return checkUnaryExpr(*unaryExpr);
+    else if(auto callExpr = dynamic_cast<const CallExpr*>(&expr)) return checkCallExpr(*callExpr);
+    else throw std::runtime_error("unknown expression");
 }
 
 
@@ -246,7 +263,9 @@ void TypeChecker::checkFunction(const FunctionDec& func){
         }
     }
 
-    checkBlockStmt(*func.body);
+    //dont call checkblockstmt for func body since we would just be 
+    //creating a second scope, instead just check each indiviudal stmt manually
+    for(const auto& stmt : func.body->statements) checkStmt(*stmt);
 
     //reset
     symbols.exitScope();
@@ -255,6 +274,7 @@ void TypeChecker::checkFunction(const FunctionDec& func){
 
 
 void TypeChecker::checkProgram(const Program& prog){
+
 
     for(const auto& function : prog.functions){
         std::vector<JKCType> paramtypes;
@@ -265,6 +285,11 @@ void TypeChecker::checkProgram(const Program& prog){
         if(!symbols.declareFunction(function->name, function->returnType, paramtypes)){
             throw std::runtime_error("error: duplicate function");
         }
+    }
+
+    //after functions have been declared, check for a function called main
+    if(!symbols.functionExists("main")){
+        throw std::runtime_error("main function does not exist");
     }
 
     for(const auto& function : prog.functions) checkFunction(*function);

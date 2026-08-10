@@ -19,10 +19,8 @@ private:
     void checkIfStmt(const IfStmt& stmt);
     void checkExprStmt(const ExprStmt& stmt);
 
-    void checkStmt(const Stmt& stmt);
     void checkBlockStmt(const BlockStmt& stmt);
 
-    JKCType checkExpr(const Expr& expr);
     JKCType checkIntegerLiteralExpr(const IntegerLiteralExpr& expr);
     JKCType checkBoolLiteralExpr(const BoolLiteralExpr& expr);
     JKCType checkVariableExpr(const VariableExpr& expr);
