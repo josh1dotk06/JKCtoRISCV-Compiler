@@ -1,0 +1,102 @@
+intermediate representation design
+
+IR Operations:
+Const
+Move
+BinOp
+UnaryOp
+Label
+Jump
+Branch
+Call
+Return
+
+eg 1: looping
+while (x is_lt 10) then { x = x + 1; }
+
+IR code:
+Label L_cond:
+BinOp t1 = x < 10
+Branch t1, L_body, L_end
+
+Label L_body
+BinOp t2 = x + 1
+Move x = t2
+Jump L_cond
+
+Label L_end
+
+
+
+eg. 2: mini program
+
+fn main() -> int {
+    let x: int = 3;
+    let y: int = 5;
+    let z: int = x + y * 2;
+
+    if (z is_gt 10) then {
+        z = z - 1;
+    }
+    else {
+        z = z + 1;
+    }
+
+    send z;
+}
+
+IR code:
+
+Const x, 3
+Const y, 5
+BinOp t1 = y * 2
+BinOp z = x + t1
+
+BinOp t2 = z > 10
+Branch t2, L_then, L_else
+
+Label L_then:
+BinOp t3 = z - 1
+Move z, t3
+Jump L_end
+
+Label L_else:
+BinOp t4 = z + 1
+Move z, t4
+
+Label L_end:
+Return z
+
+
+eg 3: unary and call
+
+fn isPositive(x: int) -> bool {
+    send x is_gt 0;
+}
+
+fn main() -> bool {
+    let x: int = 5;
+    let result: bool = false;
+
+    result = NOT isPositive(x);
+
+    send result;
+}
+
+
+IR code:
+
+IR for isPositive:
+BinOp t1 = x > 0
+Return t1
+
+IR for main
+Const x, 5
+Const result, false
+
+Call t1 = isPositive(x)
+UnaryOp t2 = NOT t1
+Move result, t2
+
+Return result
+
