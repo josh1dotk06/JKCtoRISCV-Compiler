@@ -144,6 +144,22 @@ struct IRReturn : IRInstruction{
     void print() const override;
 };
 
+struct IRParameter{
+    std::string name;
+    JKCType type;
+};
+
+//functions that contian each set of instructions for a specific function (like main)
+struct IRFunction{
+    std::string name;
+    std::vector<IRParameter> parameters;
+    JKCType returnType;
+    std::vector<std::unique_ptr<IRInstruction>> instructions;
+    void print() const;
+};
+
+
+
 
 
 
