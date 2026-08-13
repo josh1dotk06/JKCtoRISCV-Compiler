@@ -1,15 +1,15 @@
 intermediate representation design
 
-IR Operations:
-Const
-Move
-BinOp
-UnaryOp
-Label
-Jump
-Branch
-Call
-Return
+IR Operations example and definitions:
+Const: Const x, 3               initialize and set x to 3
+Move: Move z, 3                 move value 3 into z
+BinOp: BinOp x = y + 3          set x to y + 3
+UnaryOp: UnaryOp x = NOT true   set x false
+Label: Label start:             create a label Start (like a teleport pad)
+Jump: Jump start:               go to the label named start
+Branch: Branch x, pos1, pos2    using boolean x, jump to pos1 if true, otherwise pos2
+Call: Call x = func()           put function output into x
+Return: return x                send value x
 
 eg 1: looping
 while (x is_lt 10) then { x = x + 1; }

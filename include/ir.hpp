@@ -1,4 +1,5 @@
-//defining each individual IR operation structure
+//defining each individual IR operation structure and the containers to hold them
+//containers: {program, function}
 
 #pragma once
 #include <cstdint>
@@ -45,6 +46,8 @@ struct IRValue{
     bool boolValue = false;
     std::string name;
 
+    IRValue(IRValueKind kind, int64_t intValue, bool boolValue, std::string name) : kind(kind), intValue(intValue), boolValue(boolValue), name(std::move(name)) {}
+
     std::string toString() const;
 };
 
@@ -81,7 +84,7 @@ struct IRBinOp : IRInstruction{
     IRValue leftVal;
     IRValue rightVal;
 
-    IRBinOp(IRValue destination, IRBinaryOp op, IRValue leftVal, IRValue rightVal);
+    IRBinOp(IRValue destination, IRBinaryOp op, IRValue leftVal, IRValue rightVal) : destination(std::move(destination)), op(op), leftVal(std::move(leftVal)), rightVal(std::move(rightVal)) {}
 
     void print() const override;
 };
@@ -154,11 +157,19 @@ struct IRFunction{
     std::string name;
     std::vector<IRParameter> parameters;
     JKCType returnType;
+    //unique ptr because of polymorphism, there are various IR operations
     std::vector<std::unique_ptr<IRInstruction>> instructions;
     void print() const;
 };
 
+struct IRProgram{
+    std::vector<std::unique_ptr<IRFunction>> functions;
 
+    void print() const;
+};
+
+//IRProgram and IRFunction are not operations, they are containers that will
+//organize the instructions
 
 
 
