@@ -40,14 +40,13 @@ enum class IRValueKind{
 
 //can be t1, t0, x, y, true, 43, whatever
 struct IRValue{
-    IRValueKind kind;
+    IRValueKind kind = IRValueKind::Temporary;
 
     std::int64_t intValue = 0;
     bool boolValue = false;
     std::string name;
 
-    IRValue(IRValueKind kind, int64_t intValue, bool boolValue, std::string name) : kind(kind), intValue(intValue), boolValue(boolValue), name(std::move(name)) {}
-
+    IRValue() = default;
     std::string toString() const;
 };
 
