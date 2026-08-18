@@ -12,6 +12,57 @@
 //ast nodes are to be traversed, ir nodes are to be built
 
 
+IRUnaryOp IRGenerate::convertUnaryOp(UnaryOperator op){
+    switch(op){
+        case UnaryOperator::Negation:
+            return IRUnaryOp::Negation;
+        case UnaryOperator::Not:
+            return IRUnaryOp::Not;
+    }
+    throw std::runtime_error("Unknown UnaryOperator");
+}
+
+//convert AST enum type to the IR enum type (for lowerIrBin)
+IRBinaryOp IRGenerate::convertBinaryOp(BinaryOperator op){
+    switch(op){
+        case BinaryOperator::Add:
+            return IRBinaryOp::Add;
+
+        case BinaryOperator::Subtract:
+            return IRBinaryOp::Subtract;
+
+        case BinaryOperator::Multiply:
+            return IRBinaryOp::Multiply;
+
+        case BinaryOperator::Divide:
+            return IRBinaryOp::Divide;
+
+        case BinaryOperator::Equal:
+            return IRBinaryOp::Equal;
+
+        case BinaryOperator::LessThan:
+            return IRBinaryOp::LessThan;
+
+        case BinaryOperator::LessThanEqual:
+            return IRBinaryOp::LessThanEqual;
+
+        case BinaryOperator::GreaterThan:
+            return IRBinaryOp::GreaterThan;
+
+        case BinaryOperator::GreaterThanEqual:
+            return IRBinaryOp::GreaterThanEqual;
+
+        case BinaryOperator::And:
+            return IRBinaryOp::And;
+
+        case BinaryOperator::Or:
+            return IRBinaryOp::Or;
+    }
+
+    throw std::runtime_error("Unknown BinaryOperator");
+}
+
+
 void IRGenerate::lowerLetStmt(const LetStmt& stmt){
     IRValue destination;
     destination.kind = IRValueKind::Variable;
@@ -123,11 +174,102 @@ std::string IRGenerate::makeLabel(){
     return name;
 }
 
-void IRGenerate::emit(std::unique_ptr<IRInstruction> instructions){
-    (*currentFunction).instructions.push_back(instructions);
+void IRGenerate::emit(std::unique_ptr<IRInstruction> instruction){
+    (*currentFunction).instructions.push_back(instruction);
 }
 
 IRValue IRGenerate::lowerBinaryExpr(const BinaryExpr& expr){
+
+    IRValue left = lowerExpr(*expr.left);
+    IRValue right = lowerExpr(*expr.right);
+
     IRValue temp = makeTemp();
-    emit(std::make_unique<IRBinOp>(temp, expr.op, expr.left, expr.right));
+    emit(std::make_unique<IRBinOp>(temp, convertBinaryOp(expr.op), left, right));
+
+    return temp;
 }
+
+
+IRValue IRGenerate::lowerUnaryExpr(const UnaryExpr& expr){
+    IRValue operand = lowerExpr(*expr.operand);
+    IRValue temp = makeTemp();
+
+    emit(std::make_unique<IRUnaryOpStruct>(temp, convertUnaryOp(expr.op), operand));
+
+    return temp;
+}
+
+IRValue IRGenerate::lowerIntegerLiteralExpr(const IntegerLiteralExpr& expr){
+    IRValue literal;
+    literal.kind = IRValueKind::IntegerConstant;
+    literal.intValue = expr.value;
+    return literal;
+}
+
+IRValue IRGenerate::lowerBoolLiteralExpr(const BoolLiteralExpr& expr){
+    IRValue literal;
+    literal.kind = IRValueKind::BoolConstant;
+    literal.boolValue = expr.value;
+    return literal;
+}
+
+IRValue IRGenerate::lowerVariableExpr(const VariableExpr& expr){
+    IRValue variable;
+    variable.kind = IRValueKind::Variable;
+    variable.name = expr.name;
+    return variable;
+}
+
+//nice! 
+IRValue IRGenerate::lowerCallExpr(const CallExpr& expr){
+
+    std::vector<IRValue> args;
+
+    for(const auto& argument : expr.arguments){
+        IRValue arg = lowerExpr(*argument);
+        args.push_back(arg);
+    }
+
+    IRValue temp = makeTemp();
+    emit(std::make_unique<IRCall>(temp, expr.funcName, args));
+
+    return temp;
+}
+
+
+IRValue IRGenerate::lowerExpr(const Expr& expr){
+    if(auto intLitExpr = dynamic_cast<const IntegerLiteralExpr*>(&expr)) return lowerIntegerLiteralExpr(*intLitExpr);
+    else if(auto boolLitExpr = dynamic_cast<const BoolLiteralExpr*>(&expr)) return lowerBoolLiteralExpr(*boolLitExpr);
+    else if(auto varExpr = dynamic_cast<const VariableExpr*>(&expr)) return lowerVariableExpr(*varExpr);
+    else if(auto binaryExpr = dynamic_cast<const BinaryExpr*>(&expr)) return lowerBinaryExpr(*binaryExpr);
+    else if(auto unaryExpr = dynamic_cast<const UnaryExpr*>(&expr)) return lowerUnaryExpr(*unaryExpr);
+    else if(auto callExpr = dynamic_cast<const CallExpr*>(&expr)) return lowerCallExpr(*callExpr);
+    else throw std::runtime_error("unknown expression");
+}
+
+
+void IRGenerate::lowerStmt(const Stmt& stmt){
+    if(auto letStmt = dynamic_cast<const LetStmt*>(&stmt)) lowerLetStmt(*letStmt);
+    else if(auto assignStmt = dynamic_cast<const AssignStmt*>(&stmt)) lowerAssignStmt(*assignStmt);
+    else if(auto ifStmt = dynamic_cast<const IfStmt*>(&stmt)) lowerIfStmt(*ifStmt);
+    else if(auto whileStmt = dynamic_cast<const WhileStmt*>(&stmt)) lowerWhileStmt(*whileStmt);
+    else if(auto sendStmt = dynamic_cast<const SendStmt*>(&stmt)) lowerSendStmt(*sendStmt);
+    else if(auto exprStmt = dynamic_cast<const ExprStmt*>(&stmt)) lowerExprStmt(*exprStmt);
+    else if(auto blockStmt = dynamic_cast<const BlockStmt*>(&stmt)) lowerBlockStmt(*blockStmt);
+    else throw std::runtime_error("unknown statement");
+}
+
+void IRGenerate::lowerFunction(const FunctionDec& func){
+
+    std::vector<IRParameter> p;
+    for(const auto& param : func.parameters){
+        p.push_back(IRParameter(param.name, param.type));
+    }
+
+    program.functions.push_back(std::make_unique<IRFunction>(func.name, p, func.returnType, std::vector<std::unique_ptr<IRInstruction>>)){}
+
+    IRFunction function =  IRFunction(func.name, p, func.returnType, std::move(instructions);
+    currentFunction = &function;
+}
+
+

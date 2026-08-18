@@ -16,14 +16,17 @@ private:
     std::size_t tempCounter = 0;
     std::size_t labelCounter = 0;
 
+    IRBinaryOp convertBinaryOp(BinaryOperator op);
+    IRUnaryOp convertUnaryOp(UnaryOperator op);
+
     IRValue makeTemp();
     std::string makeLabel();
     void emit(std::unique_ptr<IRInstruction> instructions);
 
 
     void lowerFunction(const FunctionDec& func);
+    
     void lowerStmt(const Stmt& stmt);
-
     void lowerLetStmt(const LetStmt& stmt);
     void lowerAssignStmt(const AssignStmt& stmt);
     void lowerSendStmt(const SendStmt& stmt);
@@ -45,7 +48,7 @@ private:
 
 public:
 
-    //in main: take the checked ast and generate an IRProgram obj
+    //in main: take the checked ast and generate an IRProgram obj (since ast is just the program head)
     //pass that object into our constructor which will be the head
     explicit IRGenerate(IRProgram& program) : program(program) {}
 };
