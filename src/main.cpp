@@ -35,7 +35,8 @@ int main(int argc, char* argv[]){
 
     IRGenerate generator;
     generator.lowerProgram(*program);
-    
+    generator.getProgram().print();
+
     //our IR structure information is stored within irProgramInput.functions
 
 

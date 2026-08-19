@@ -61,7 +61,7 @@ struct IRConst : IRInstruction{
     IRValue destination;
     IRValue value;
 
-    IRConst(IRValue destination, IRValue value);
+    IRConst(IRValue destination, IRValue value) : destination(std::move(destination)), value(std::move(value)) {}
 
     //future 
     void print() const override;
@@ -71,7 +71,7 @@ struct IRMove : IRInstruction{
     IRValue destination;
     IRValue source;
 
-    IRMove(IRValue destination, IRValue source);
+    IRMove(IRValue destination, IRValue source) : destination(std::move(destination)), source(std::move(source)) {}
 
     void print() const override;
 };
@@ -93,7 +93,7 @@ struct IRUnaryOpStruct : IRInstruction{
     IRUnaryOp op;
     IRValue value;
 
-    IRUnaryOpStruct(IRValue destination, IRUnaryOp op, IRValue value);
+    IRUnaryOpStruct(IRValue destination, IRUnaryOp op, IRValue value) : destination(std::move(destination)), op(op), value(std::move(value)) {}
 
     void print() const override;
 };
@@ -102,7 +102,7 @@ struct IRUnaryOpStruct : IRInstruction{
 struct IRLabel : IRInstruction{
     std::string label;
 
-    explicit IRLabel(std::string label);
+    explicit IRLabel(std::string label) : label(std::move(label)) {}
 
     void print() const override;
 };
@@ -112,7 +112,7 @@ struct IRLabel : IRInstruction{
 struct IRJump : IRInstruction{
     std::string destination;
 
-    explicit IRJump(std::string destination);
+    explicit IRJump(std::string destination) : destination(std::move(destination)) {}
 
     void print() const override;
 };
@@ -123,7 +123,7 @@ struct IRBranch : IRInstruction{
     std::string trueLabel;
     std::string falseLabel;
 
-    IRBranch(IRValue condition, std::string trueLabel, std::string falseLabel);
+    IRBranch(IRValue condition, std::string trueLabel, std::string falseLabel) : condition(std::move(condition)), trueLabel(std::move(trueLabel)), falseLabel(std::move(falseLabel)) {}
 
     void print() const override;
 };
@@ -134,14 +134,14 @@ struct IRCall : IRInstruction{
     std::string functionName;
     std::vector<IRValue> arguments;
 
-    IRCall(IRValue destination, std::string functionName, std::vector<IRValue> arguments);
+    IRCall(IRValue destination, std::string functionName, std::vector<IRValue> arguments) : destination(std::move(destination)), functionName(std::move(functionName)), arguments(std::move(arguments)) {}
 
     void print() const override;
 };
 
 struct IRReturn : IRInstruction{
     IRValue value;
-    explicit IRReturn(IRValue value);
+    explicit IRReturn(IRValue value) : value(std::move(value)) {}
 
     void print() const override;
 };
@@ -149,6 +149,8 @@ struct IRReturn : IRInstruction{
 struct IRParameter{
     std::string name;
     JKCType type;
+
+    IRParameter(std::string name, JKCType type) : name(std::move(name)), type(type) {}
 };
 
 //functions that contian each set of instructions for a specific function (like main)
@@ -158,6 +160,9 @@ struct IRFunction{
     JKCType returnType;
     //unique ptr because of polymorphism, there are various IR operations
     std::vector<std::unique_ptr<IRInstruction>> instructions;
+
+    IRFunction(std::string name, std::vector<IRParameter> parameters, JKCType returnType, std::vector<std::unique_ptr<IRInstruction>> instructions) : name(std::move(name)), parameters(std::move(parameters)), returnType(returnType), instructions(std::move(instructions)) {} 
+
     void print() const;
 };
 

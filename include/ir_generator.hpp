@@ -52,6 +52,11 @@ public:
 
     //in main: take the checked ast and generate an IRProgram obj (since ast is just the program head)
     //pass that object into our constructor which will be the head
+    const IRProgram& getProgram() const{
+        return program;
+    }
+
+    //auto initializes program private field instead of having to manually use member initialize it and pass it from main
     IRGenerate() = default;
     void lowerProgram(const Program& prog);
 };
