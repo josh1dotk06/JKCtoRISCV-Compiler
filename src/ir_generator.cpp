@@ -12,6 +12,19 @@
 //ast nodes are to be traversed, ir nodes are to be built
 
 
+IRFunction IRGenerate::convertFunction(const FunctionDec& func){
+    std::vector<IRParameter> params;
+
+    for(const auto& param : func.parameters){
+        params.push_back(
+            IRParameter(param.name, param.type)
+        );
+    }
+    std::vector<std::unique_ptr<IRInstruction>> instructions;
+    return IRFunction(func.name, params, func.returnType, std::move(instructions));
+}
+
+
 IRUnaryOp IRGenerate::convertUnaryOp(UnaryOperator op){
     switch(op){
         case UnaryOperator::Negation:
@@ -175,7 +188,7 @@ std::string IRGenerate::makeLabel(){
 }
 
 void IRGenerate::emit(std::unique_ptr<IRInstruction> instruction){
-    (*currentFunction).instructions.push_back(instruction);
+    (*currentFunction).instructions.push_back(std::move(instruction));
 }
 
 IRValue IRGenerate::lowerBinaryExpr(const BinaryExpr& expr){
@@ -261,15 +274,22 @@ void IRGenerate::lowerStmt(const Stmt& stmt){
 
 void IRGenerate::lowerFunction(const FunctionDec& func){
 
-    std::vector<IRParameter> p;
-    for(const auto& param : func.parameters){
-        p.push_back(IRParameter(param.name, param.type));
-    }
+    IRFunction irFunc = convertFunction(func);
 
-    program.functions.push_back(std::make_unique<IRFunction>(func.name, p, func.returnType, std::vector<std::unique_ptr<IRInstruction>>)){}
+    program.functions.push_back(std::make_unique<IRFunction>(std::move(irFunc)));
 
-    IRFunction function =  IRFunction(func.name, p, func.returnType, std::move(instructions);
-    currentFunction = &function;
+    currentFunction = program.functions.back().get();
+    lowerBlockStmt(*func.body);
+    currentFunction = nullptr;
+
 }
+
+void IRGenerate::lowerProgram(const Program& prog){
+    for(const auto& function : prog.functions){
+        lowerFunction(*function);
+    }
+}
+
+
 
 

@@ -4,6 +4,8 @@
 #include "lexer.hpp"
 #include "type_checker.hpp"
 #include "symbol_table.hpp"
+#include "ir.hpp"
+#include "ir_generator.hpp"
 #include <vector>
 
 
@@ -28,6 +30,15 @@ int main(int argc, char* argv[]){
     //phase 4: symbol table and type checking
     TypeChecker checker;
     checker.checkProgram(*program);
+
+    //phase 5/6
+
+    IRGenerate generator;
+    generator.lowerProgram(*program);
+    
+    //our IR structure information is stored within irProgramInput.functions
+
+
 
     // std::cout << "src code: " << sourceCode << std::endl << std::endl;
 

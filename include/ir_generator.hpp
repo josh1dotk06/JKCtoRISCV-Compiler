@@ -18,12 +18,14 @@ private:
 
     IRBinaryOp convertBinaryOp(BinaryOperator op);
     IRUnaryOp convertUnaryOp(UnaryOperator op);
+    IRFunction convertFunction(const FunctionDec& func);
+
 
     IRValue makeTemp();
     std::string makeLabel();
     void emit(std::unique_ptr<IRInstruction> instructions);
 
-
+    
     void lowerFunction(const FunctionDec& func);
     
     void lowerStmt(const Stmt& stmt);
@@ -50,5 +52,6 @@ public:
 
     //in main: take the checked ast and generate an IRProgram obj (since ast is just the program head)
     //pass that object into our constructor which will be the head
-    explicit IRGenerate(IRProgram& program) : program(program) {}
+    IRGenerate() = default;
+    void lowerProgram(const Program& prog);
 };
