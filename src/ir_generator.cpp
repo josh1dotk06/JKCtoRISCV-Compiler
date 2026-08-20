@@ -1,4 +1,4 @@
-#pragma once
+
 #include "ast.hpp"
 #include "ir.hpp"
 #include "ir_generator.hpp"

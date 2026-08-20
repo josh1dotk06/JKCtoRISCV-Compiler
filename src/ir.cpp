@@ -2,6 +2,20 @@
 #include <utility>
 
 
+std::string IRValue::toString() const{
+    if(kind == IRValueKind::Variable || kind == IRValueKind::Temporary){
+        return name;
+    }
+    else if(kind == IRValueKind::IntegerConstant){
+        return std::to_string(intValue);
+    }
+    else if(kind == IRValueKind::BoolConstant){
+        if(!boolValue) return "false";
+        else return "true";
+    }
+    return "unknown";
+}
+
 
 //static helper for unary
 static std::string getIRUnaryOpName(IRUnaryOp op){
@@ -86,7 +100,7 @@ void IRBranch::print() const{
 
 void IRCall::print() const{
     std::cout << "Call " << destination.toString() << " = " << functionName << "(";
-    for(int i = 0; i < arguments.size(); ++i){
+    for(std::size_t i = 0; i < arguments.size(); ++i){
         if(i == arguments.size() - 1){
             std::cout << arguments[i].toString();
             break;
@@ -97,5 +111,19 @@ void IRCall::print() const{
 }
 
 void IRReturn::print() const{
-    std::cout << "Return " << value.toString();
+    std::cout << "Return " << value.toString() << '\n';
+}
+
+//printing the final objects
+void IRFunction::print() const{
+    std::cout << name << "\n";
+    for(auto const& instruction : instructions){
+        (*instruction).print();
+    }
+}
+
+void IRProgram::print() const{
+    for(auto const& func : functions){
+        (*func).print();
+    }
 }
