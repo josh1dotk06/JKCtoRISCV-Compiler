@@ -6,6 +6,7 @@
 #include "symbol_table.hpp"
 #include "ir.hpp"
 #include "ir_generator.hpp"
+#include "optimizer.hpp"
 #include <vector>
 
 
@@ -35,7 +36,13 @@ int main(int argc, char* argv[]){
 
     IRGenerate generator;
     generator.lowerProgram(*program);
-    generator.getProgram().print();
+    ///////generator.getProgram().print();////////
+    IRProgram irprogram = generator.getProgram();
+
+    Optimizer optimizer(irprogram);
+    optimizer.optimize();
+
+
 
     //our IR structure information is stored within irProgramInput.functions
 

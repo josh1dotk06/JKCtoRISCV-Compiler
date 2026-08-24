@@ -10,11 +10,14 @@ private:
     
     bool folder(IRFunction& func);
     bool propagator(IRFunction& func);
-    bool eliminator(IRFunction& func);
+    // bool eliminator(IRFunction& func);
     bool remover(IRFunction& func);
 
 public:
     explicit Optimizer(IRProgram& program) : program(program) {}
+    IRProgram& getProgram(){
+        return program;
+    }
     void optimize();
 };
 
