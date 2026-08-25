@@ -52,7 +52,7 @@ public:
 
     //in main: take the checked ast and generate an IRProgram obj (since ast is just the program head)
     //pass that object into our constructor which will be the head
-    const IRProgram& getProgram() const{
+    IRProgram& getProgram(){
         return program;
     }
 

@@ -37,10 +37,17 @@ int main(int argc, char* argv[]){
     IRGenerate generator;
     generator.lowerProgram(*program);
     ///////generator.getProgram().print();////////
-    IRProgram irprogram = generator.getProgram();
+    IRProgram& irprogram = generator.getProgram(); //use original since irprogram contains unique_ptr's
+
+    //phase 7
 
     Optimizer optimizer(irprogram);
     optimizer.optimize();
+    irprogram.print(); //original gets modified by the optimizer
+
+    //phase 8
+    //input: irprogram (optimized)
+
 
 
 
