@@ -25,6 +25,7 @@ struct BasicBlock{
 
 class BasicBlockBuilder{
 private:
+    //each function corresponds to a set of basicblocks
     std::unordered_map<std::string, std::vector<BasicBlock>> basicBlocks;
 public:
     void buildBlocks(const IRFunction& function, const std::string& name);
