@@ -31,7 +31,7 @@ void CFGBuilder::buildCFGs(const std::unordered_map<std::string, std::vector<Bas
 void CFGBuilder::buildCFG(const std::vector<BasicBlock>& blocks, const std::string& functionName){
 
     //prevent copying cfg so no dangling pointers: use reference to refer to the one that exists in cfgs
-    CFG& cfg = cfgs[functionName]; //creates one if cfgs[functionName] doesnt exist yet
+    CFG& cfg = cfgs[functionName]; //creates one if cfgs[functionName] doesnt exist yet due to default constructor
     cfg.functionName = functionName;
 
     cfg.nodes.clear(); //just in case we run this more than once
