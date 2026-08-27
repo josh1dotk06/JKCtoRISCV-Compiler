@@ -28,7 +28,8 @@ going backwards is like going back in time, we already know everything about the
 
 struct VarNode{
     std::string name;
-    std::vector<VarNode*> edges;
+    std::unordered_set<VarNode*> edges;
+    VarNode() = default; //we shuoldnt need to create varNodes for every variable per cfg beforehand
 };
 
 struct InterferenceGraph{
@@ -43,6 +44,10 @@ private:
     const std::unordered_map<const CFGNode*, NodeData>& data;
 public:
     //need to process thru cfgs for nodes
+    void makeEdge(std::string funcName, std::string var1, std::string var2);
     void buildProgGraphs(const std::unordered_map<std::string, CFG>& cfgs);
     void buildGraph(const CFG& cfg);
+
+    InterferenceGraphBuilder(const std::unordered_map<const CFGNode*, NodeData>& data) : data(data) {}
+
 };

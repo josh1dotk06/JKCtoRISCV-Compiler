@@ -11,7 +11,8 @@
 #include "liveness.hpp"
 #include <optional>
 
-std::optional<std::string> getDestination(const IRInstruction* instr){
+//get variable name for the destination variable in the instruction
+std::optional<std::string> LivenessAnalysis::getDestination(const IRInstruction* instr){
     if(auto x = dynamic_cast<const IRConst*>(instr))
         return x->destination.name;
 
@@ -29,8 +30,9 @@ std::optional<std::string> getDestination(const IRInstruction* instr){
     return std::nullopt;
 }
 
-
-std::vector<std::string> getSources(const IRInstruction* instr) {
+//get variable names for the sources in the instruction
+//sources U destinations = all variables
+std::vector<std::string> LivenessAnalysis::getSources(const IRInstruction* instr) {
     std::vector<std::string> sources;
 
     auto add = [&](const IRValue& v){
