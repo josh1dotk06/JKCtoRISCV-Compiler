@@ -25,10 +25,10 @@ class LivenessAnalysis{
 private:
     std::unordered_map<const CFGNode*, NodeData> data;
 public:
-    void computeUseAndDef(CFG& cfg);
-    bool computeLiveIn(CFG& cfg);
-    bool computeLiveOut(CFG& cfg);
-    void processProgram(std::unordered_map<std::string, CFG> cfgs);
+    void computeUseAndDef(const CFG& cfg);
+    bool computeLiveIn(const CFG& cfg);
+    bool computeLiveOut(const CFG& cfg);
+    void processProgram(const std::unordered_map<std::string, CFG>& cfgs);
     LivenessAnalysis() = default;
 };
 

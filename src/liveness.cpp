@@ -53,9 +53,9 @@ std::vector<std::string> getSources(const IRInstruction* instr) {
 }
 
 
-void LivenessAnalysis::processProgram(std::unordered_map<std::string, CFG> cfgs){
+void LivenessAnalysis::processProgram(const std::unordered_map<std::string, CFG>& cfgs){
     data.clear(); //just in case it gets run multiple times in one session
-    for(auto& [name, cfg] : cfgs){
+    for(const auto& [name, cfg] : cfgs){
         computeUseAndDef(cfg);
         bool changed = false;
         do{
@@ -68,7 +68,7 @@ void LivenessAnalysis::processProgram(std::unordered_map<std::string, CFG> cfgs)
 
 //use contains all variables that are used in this block which are
 //not yet defined in this block
-void LivenessAnalysis::computeUseAndDef(CFG& cfg){
+void LivenessAnalysis::computeUseAndDef(const CFG& cfg){
     //process each node within the INDIVIDUAL cfg
     for(const auto& node : cfg.nodes){
         const BasicBlock& block = *node.block;
@@ -97,7 +97,7 @@ void LivenessAnalysis::computeUseAndDef(CFG& cfg){
 //requires multiple passes to completely fill up liveIn hence why its bool
 
 //logical formula: liveIn = use ∪ (liveOut - def)
-bool LivenessAnalysis::computeLiveIn(CFG& cfg){
+bool LivenessAnalysis::computeLiveIn(const CFG& cfg){
     bool changed = false;
     for(const auto& node : cfg.nodes){
         for(const auto& variable : data[&node].use){
@@ -115,7 +115,7 @@ bool LivenessAnalysis::computeLiveIn(CFG& cfg){
 }
 
 //logical formula: liveOut[B] = ⋃ liveIn[S] for each successor S of B
-bool LivenessAnalysis::computeLiveOut(CFG& cfg){
+bool LivenessAnalysis::computeLiveOut(const CFG& cfg){
     bool changed = false;
     for(const auto& node : cfg.nodes){
         for(const auto& nextNode : node.to){

@@ -7,6 +7,7 @@
 #include "ir.hpp"
 #include "basic_block.hpp"
 #include "cfg.hpp"
+#include "liveness.hpp"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -25,3 +26,23 @@ we append the source variables to the register set because since we're going bac
 going backwards is like going back in time, we already know everything about the current instruction's variables before its effects happen
 */
 
+struct VarNode{
+    std::string name;
+    std::vector<VarNode*> edges;
+};
+
+struct InterferenceGraph{
+    std::string functionName;
+    std::unordered_map<std::string, VarNode> variables;
+};
+
+class InterferenceGraphBuilder{
+private:
+    std::unordered_map<std::string, InterferenceGraph> progGraphs;
+    //requires access to their nodeData to obtain liveOut info
+    const std::unordered_map<const CFGNode*, NodeData>& data;
+public:
+    //need to process thru cfgs for nodes
+    void buildProgGraphs(const std::unordered_map<std::string, CFG>& cfgs);
+    void buildGraph(const CFG& cfg);
+};
