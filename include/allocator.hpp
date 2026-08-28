@@ -26,22 +26,25 @@
 struct AllocationResult{
     std::unordered_map<std::string, std::string> registers; //variable mapped to a risc V register
     std::unordered_set<std::string> spilled;
+    AllocationResult() = default;
 };
 
 class RegisterAllocator{
 private:
+
+    std::unordered_map<std::string, AllocationResult> allocations;
     const std::unordered_map<std::string, InterferenceGraph>& graphs;
     
     //using only the pool of s1-s11 risc v registers (i.e the callee-saved registers)
     //these registers are preserved across function calls 
-    std::vector<std::string> availableRegisters = {
+    //requires to be a set so we can arbitrarily choose registers
+    std::unordered_set<std::string> availableRegisters = {
     "s1", "s2", "s3", "s4", "s5", "s6",
     "s7", "s8", "s9", "s10", "s11"
     };
 
-    std::unordered_map<std::string, AllocationResult> allocations;
-
-    AllocationResult allocateGraph(const InterferenceGraph& graph);
+    void allocateGraph(const InterferenceGraph& graph);
+    const std::int64_t k = availableRegisters.size();
 
 public:
     RegisterAllocator(const std::unordered_map<std::string, InterferenceGraph>& graphs) : graphs(graphs) {}
