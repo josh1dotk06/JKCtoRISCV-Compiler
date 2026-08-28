@@ -32,6 +32,7 @@ struct AllocationResult{
 class RegisterAllocator{
 private:
 
+    //allocations per function
     std::unordered_map<std::string, AllocationResult> allocations;
     const std::unordered_map<std::string, InterferenceGraph>& graphs;
     

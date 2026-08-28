@@ -91,3 +91,11 @@ void RegisterAllocator::allocateGraph(const InterferenceGraph& graph){
 
     }
 }
+
+/*
+k3=
+a -> s9
+b -> s8
+c -> s11
+spilled: none
+*/
