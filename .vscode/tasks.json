@@ -3,16 +3,18 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe build active file",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "command": "C:\\TDM-GCC-64\\bin\\g++.exe",
             "args": [
+                "-std=c++17",
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                "-I${workspaceFolder}\\include",
+                "${workspaceFolder}\\src\\*.cpp",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${workspaceFolder}\\main.exe"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"

@@ -1,4 +1,4 @@
-#pragma once
+
 //traverse ast and type check using symbol table
 //it traverses the ast in the same recursive-descent way, in order to 
 //reach every node and check it
