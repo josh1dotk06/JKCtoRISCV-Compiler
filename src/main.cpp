@@ -13,6 +13,7 @@
 #include "interference_graph.hpp"
 #include "allocator.hpp"
 #include "riscv_codegen.hpp"
+#include <fstream>
 #include <vector>
 
 
@@ -23,7 +24,20 @@ int main(int argc, char* argv[]){
     //================== ENTIRE PIPELINE =======================//
 
     //test src code
-    std::string sourceCode = "fn main() -> int { let x: int = 5; send x; }";
+    // std::string sourceCode = "fn main() -> int { let x: int = 5; send x; }";
+
+    //test src code as a .jkc file input
+    if(argc < 2){
+        throw std::runtime_error("Usage: compiler <file.jkc>");
+    }
+    std::ifstream inputFile(argv[1]);
+
+    if(!inputFile){
+        throw std::runtime_error("could not open source file");
+    }
+    std::stringstream buffer;
+    buffer << inputFile.rdbuf();
+    std::string sourceCode = buffer.str();
 
     //phase 2: lexer
     LexicalAnalyzer lexer(sourceCode);
@@ -92,6 +106,17 @@ int main(int argc, char* argv[]){
     std::cout << "\n=======>GENERATED RISC V<=======\n";
     //PRINT THE FINAL ASM
     std::cout << assembly << std::endl;
+
+    //create .s file for assembling/linking, and QEMU
+    std::ofstream asmFile("program.s");
+    if(!asmFile){
+        throw std::runtime_error("Could not create program.s");
+    }
+    asmFile << assembly;
+    asmFile.close();
+
+
+
 
 
     //======================== END PIPELINE ==============================//

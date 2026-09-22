@@ -1,0 +1,7 @@
+fn main() -> int {
+    let x: int = 5;
+    let y: int = 3;
+    let z: int = x * y + 2;
+
+    send z;
+}
