@@ -22,27 +22,27 @@ int main(int argc, char* argv[]){
     std::vector<Token> tokens = lexer.tokenize();
     printTokens(tokens);
 
-    // //phase 3: parser and ast
-    // Parser ast(tokens);
-    // //head of the AST
-    // std::unique_ptr<Program> program = ast.parseProgram();
+    //phase 3: parser and ast
+    Parser ast(tokens);
+    //head of the AST
+    std::unique_ptr<Program> program = ast.parseProgram();
 
-    // //phase 4: symbol table and type checking
-    // TypeChecker checker;
-    // checker.checkProgram(*program);
+    //phase 4: symbol table and type checking
+    TypeChecker checker;
+    checker.checkProgram(*program);
 
-    // //phase 5/6
+    //phase 5/6
 
-    // IRGenerate generator;
-    // generator.lowerProgram(*program);
-    // ///////generator.getProgram().print();////////
-    // IRProgram& irprogram = generator.getProgram(); //use original since irprogram contains unique_ptr's
+    IRGenerate generator;
+    generator.lowerProgram(*program);
+    ///////generator.getProgram().print();////////
+    IRProgram& irprogram = generator.getProgram(); //use original since irprogram contains unique_ptr's
 
-    // //phase 7
+    //phase 7
 
-    // Optimizer optimizer(irprogram);
-    // optimizer.optimize();
-    // irprogram.print(); //original gets modified by the optimizer
+    Optimizer optimizer(irprogram);
+    optimizer.optimize();
+    irprogram.print(); //original gets modified by the optimizer
 
     //phase 8
     //input: irprogram (optimized)

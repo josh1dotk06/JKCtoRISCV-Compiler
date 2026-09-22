@@ -66,4 +66,20 @@ void InterferenceGraphBuilder::buildGraph(const CFG& cfg){
             }
         }
     }
+
+    //make all valyes live at function entry interfere
+    if(!cfg.nodes.empty()){
+        const auto& entryLiveIn = data.at(&cfg.nodes.front()).liveIn;
+
+        for(auto it1 = entryLiveIn.begin(); it1 != entryLiveIn.end(); ++it1){
+            auto it2 = it1;
+            ++it2;
+
+            for(; it2 != entryLiveIn.end(); ++it2){
+                makeEdge(cfg.functionName, *it1, *it2);
+            }
+        }
+    }
+
+
 }
