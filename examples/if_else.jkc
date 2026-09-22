@@ -1,0 +1,16 @@
+fn choose(x: int) -> int {
+    if(x is_gt 10) then {
+        send 20;
+    }
+    else {
+        send 5;
+    }
+}
+
+fn main() -> int {
+    let x: int = choose(15);
+    let y: int = choose(4);
+
+    send x + y;
+}
+

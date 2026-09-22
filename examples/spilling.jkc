@@ -1,0 +1,20 @@
+fn stress(a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int) -> int {
+    let x1: int = a + b;
+    let x2: int = c + d;
+    let x3: int = e + f;
+    let x4: int = g + h;
+    let x5: int = a * c;
+    let x6: int = b * d;
+    let x7: int = e * g;
+    let x8: int = f * h;
+    let x9: int = a + h;
+    let x10: int = b + g;
+    let x11: int = c + f;
+    let x12: int = d + e;
+
+    send x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12;
+}
+
+fn main() -> int {
+    send stress(1, 2, 3, 4, 5, 6, 7, 8);
+}

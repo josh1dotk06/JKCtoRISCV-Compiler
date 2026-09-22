@@ -1,0 +1,16 @@
+fn sumTo(n: int) -> int {
+    let i: int = 1;
+    let total: int = 0;
+
+    while(i is_lte n) then {
+        total = total + i;
+        i = i + 1;
+    }
+
+    send total;
+}
+
+fn main() -> int {
+    send sumTo(10);
+}
+

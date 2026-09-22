@@ -1,0 +1,38 @@
+name: JKC Compiler CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++ \
+            gcc-riscv64-linux-gnu \
+            libc6-dev-riscv64-cross \
+            qemu-user
+
+      - name: Build JKC compiler
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp -o main.exe
+
+      - name: Verify RISC-V tools
+        run: |
+          riscv64-linux-gnu-gcc --version
+          qemu-riscv64 --version
+
+      - name: Run end-to-end tests
+        run: |
+          chmod +x runtests.sh
+          ./runtests.sh

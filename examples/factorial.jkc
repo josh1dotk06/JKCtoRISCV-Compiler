@@ -1,0 +1,12 @@
+fn fact(n: int) -> int {
+    if(n is_lte 1) then {
+        send 1;
+    }
+    else {
+        send n * fact(n - 1);
+    }
+}
+
+fn main() -> int {
+    send fact(5);
+}

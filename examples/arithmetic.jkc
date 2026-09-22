@@ -1,0 +1,11 @@
+fn calculate(a: int, b: int) -> int {
+    let x: int = a + b;
+    let y: int = x * 3;
+    let z: int = y - 6;
+    
+    send z / 2;
+}
+
+fn main() -> int {
+    send calculate(8, 4);
+}

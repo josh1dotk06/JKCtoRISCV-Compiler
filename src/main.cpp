@@ -28,8 +28,32 @@ int main(int argc, char* argv[]){
 
     //test src code as a .jkc file input
     if(argc < 2){
-        throw std::runtime_error("Usage: compiler <file.jkc>");
+        throw std::runtime_error("Usage: ./main.exe examples/<file.jkc> [--lexer] [--opt-ir] [--asm]");
     }
+
+    bool emitLexer = false;
+    bool emitOptIR = false;
+    bool emitAsm = false;
+
+    for(int i = 2; i < argc; i++){
+        std::string flag = argv[i];
+
+        if(flag=="--lexer"){
+            emitLexer = true;
+        }
+        else if(flag == "--opr-ir"){
+            emitOptIR = true;
+        }
+        else if(flag == "--asm") {
+            emitAsm = true;
+        }
+        else{
+            throw std::runtime_error("Unknown flag: " + flag);
+        }
+    }
+
+
+
     std::ifstream inputFile(argv[1]);
 
     if(!inputFile){
@@ -39,10 +63,17 @@ int main(int argc, char* argv[]){
     buffer << inputFile.rdbuf();
     std::string sourceCode = buffer.str();
 
+
+
+
     //phase 2: lexer
     LexicalAnalyzer lexer(sourceCode);
     std::vector<Token> tokens = lexer.tokenize();
-    printTokens(tokens);
+    if(emitLexer){
+        std::cout << "\n======> LEXER OUTPUT <===========\n";
+        printTokens(tokens);
+    }
+    
 
     //phase 3: parser and ast
     Parser ast(tokens);
@@ -64,7 +95,12 @@ int main(int argc, char* argv[]){
 
     Optimizer optimizer(irprogram);
     optimizer.optimize();
-    irprogram.print(); //original gets modified by the optimizer
+
+    if(emitOptIR){
+        std::cout << "\n=========> OPTIMIZED IR <============\n";
+        irprogram.print(); //original gets modified by the optimizer
+    }
+    
 
     //phase 8
     //input: irprogram (optimized)
@@ -105,7 +141,11 @@ int main(int argc, char* argv[]){
     std::string assembly = codeGenerator.getAssembly();
     std::cout << "\n=======>GENERATED RISC V<=======\n";
     //PRINT THE FINAL ASM
-    std::cout << assembly << std::endl;
+    if(emitAsm){
+        std::cout << "\n=========> GENERATED RISC V <===========\n";
+        std::cout << assembly << std::endl;
+    }
+    
 
     //create .s file for assembling/linking, and QEMU
     std::ofstream asmFile("program.s");
