@@ -34,6 +34,10 @@ public:
     
     //per function
     void buildCFG(const std::vector<BasicBlock>& blocks, const std::string& functionName);
+
+    const std::unordered_map<std::string, CFG>& getCFGs() const {
+        return cfgs;
+    }   
 };
 
 

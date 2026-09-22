@@ -30,6 +30,9 @@ private:
 public:
     void buildBlocks(const IRFunction& function, const std::string& name);
     void buildBlockStruct(const IRProgram& program);
+    const std::unordered_map<std::string, std::vector<BasicBlock>>& getBasicBlocks() const {
+        return basicBlocks;
+    }
 };
 
 

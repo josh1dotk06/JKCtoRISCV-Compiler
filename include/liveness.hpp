@@ -36,6 +36,10 @@ public:
     static std::optional<std::string> getDestination(const IRInstruction* instr);
     static std::vector<std::string> getSources(const IRInstruction* instr);
 
+    const std::unordered_map<const CFGNode*, NodeData>& getData() const {
+        return data;
+    }
+
     LivenessAnalysis() = default;
 };
 

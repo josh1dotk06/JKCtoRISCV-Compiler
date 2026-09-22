@@ -7,12 +7,20 @@
 #include "ir.hpp"
 #include "ir_generator.hpp"
 #include "optimizer.hpp"
+#include "basic_block.hpp"
+#include "cfg.hpp"
+#include "liveness.hpp"
+#include "interference_graph.hpp"
+#include "allocator.hpp"
+#include "riscv_codegen.hpp"
 #include <vector>
 
 
 
 
 int main(int argc, char* argv[]){
+
+    //================== ENTIRE PIPELINE =======================//
 
     //test src code
     std::string sourceCode = "fn main() -> int { let x: int = 5; send x; }";
@@ -47,7 +55,46 @@ int main(int argc, char* argv[]){
     //phase 8
     //input: irprogram (optimized)
 
+    //8.1: blocks
+    BasicBlockBuilder blockBuilder;
+    blockBuilder.buildBlockStruct(irprogram);
+    const auto& basicBlocks = blockBuilder.getBasicBlocks();
 
+    //input: basicBlocks
+    //8.2: cfg
+    CFGBuilder cfgBuilder;
+    cfgBuilder.buildCFGs(basicBlocks);
+    const auto& cfgs = cfgBuilder.getCFGs();
+
+    //input cfgs
+    //8.3: liveness analysis
+    LivenessAnalysis liveness;
+    liveness.processProgram(cfgs);
+    const auto& livenessData = liveness.getData();
+
+    //input livenessData & cfgs
+    //8.4: interference graph
+    InterferenceGraphBuilder graphBuilder(livenessData);
+    graphBuilder.buildProgGraphs(cfgs);
+    const auto& graphs = graphBuilder.getProgGraphs();
+
+    //input graphs
+    //8.5: reg allocations
+    RegisterAllocator allocator(graphs);
+    allocator.allocateProgram();
+    const auto& allocations = allocator.getAllocations();
+
+    //input allocations, ir program == GGs finished
+    //8.6: risc v code gen
+    RISCVCodeGenerator codeGenerator(irprogram, allocations);
+    codeGenerator.generateProgram();
+    std::string assembly = codeGenerator.getAssembly();
+    std::cout << "\n=======>GENERATED RISC V<=======\n";
+    //PRINT THE FINAL ASM
+    std::cout << assembly << std::endl;
+
+
+    //======================== END PIPELINE ==============================//
 
 
     //our IR structure information is stored within irProgramInput.functions

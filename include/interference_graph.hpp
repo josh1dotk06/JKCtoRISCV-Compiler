@@ -48,6 +48,10 @@ public:
     void buildProgGraphs(const std::unordered_map<std::string, CFG>& cfgs);
     void buildGraph(const CFG& cfg);
 
+    const std::unordered_map<std::string, InterferenceGraph>& getProgGraphs() const {
+        return progGraphs;
+    }
+
     InterferenceGraphBuilder(const std::unordered_map<const CFGNode*, NodeData>& data) : data(data) {}
 
 };
