@@ -10,7 +10,7 @@ private:
     
     bool folder(IRFunction& func);
     bool propagator(IRFunction& func);
-    // bool eliminator(IRFunction& func);
+    bool eliminator(IRFunction& func);
     bool remover(IRFunction& func);
 
 public:

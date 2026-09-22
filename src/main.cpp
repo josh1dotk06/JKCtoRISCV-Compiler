@@ -28,10 +28,11 @@ int main(int argc, char* argv[]){
 
     //test src code as a .jkc file input
     if(argc < 2){
-        throw std::runtime_error("Usage: ./main.exe examples/<file.jkc> [--lexer] [--opt-ir] [--asm]");
+        throw std::runtime_error("Usage: ./main.exe examples/<file.jkc> [--lexer] [--ir] [--opt-ir] [--asm]");
     }
 
     bool emitLexer = false;
+    bool emitIR = false;
     bool emitOptIR = false;
     bool emitAsm = false;
 
@@ -40,6 +41,9 @@ int main(int argc, char* argv[]){
 
         if(flag=="--lexer"){
             emitLexer = true;
+        }
+        else if(flag=="--ir"){
+            emitIR = true;
         }
         else if(flag == "--opr-ir"){
             emitOptIR = true;
@@ -90,8 +94,12 @@ int main(int argc, char* argv[]){
     generator.lowerProgram(*program);
     ///////generator.getProgram().print();////////
     IRProgram& irprogram = generator.getProgram(); //use original since irprogram contains unique_ptr's
-
-    //phase 7
+        
+    if(emitIR){
+        std::cout << "\n=========> UNOPTIMIZED IR <===============\n";
+        generator.getProgram().print();
+    }
+        //phase 7
 
     Optimizer optimizer(irprogram);
     optimizer.optimize();
@@ -139,7 +147,6 @@ int main(int argc, char* argv[]){
     RISCVCodeGenerator codeGenerator(irprogram, allocations);
     codeGenerator.generateProgram();
     std::string assembly = codeGenerator.getAssembly();
-    std::cout << "\n=======>GENERATED RISC V<=======\n";
     //PRINT THE FINAL ASM
     if(emitAsm){
         std::cout << "\n=========> GENERATED RISC V <===========\n";

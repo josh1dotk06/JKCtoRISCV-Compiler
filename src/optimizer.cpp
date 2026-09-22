@@ -19,6 +19,7 @@ void Optimizer::optimize(){
             changed = false;
             changed |= folder(*func);
             changed |= propagator(*func);
+            changed |= eliminator(*func);
             changed |= remover(*func);
         } while(changed);
     }
@@ -217,93 +218,84 @@ bool Optimizer::propagator(IRFunction& func){
 //only source: return, branch
 
 
-// bool Optimizer::eliminator(IRFunction& func){
+bool Optimizer::eliminator(IRFunction& func){
 
-//     std::set<std::string> needed;
-//     bool changed = false;
+    std::set<std::string> used;
+    bool changed = false;
 
-//     //lambda function can be written within another function (locally defined function)
-//     auto addIfVariable = [&](const IRValue& value){
-//         if(value.kind == IRValueKind::Variable || value.kind == IRValueKind::Temporary){
-//             needed.insert(value.name);
-//         }
-//     };
+    //add var/temp names that are actually read somewhere
+    auto addIfVariable = [&](const IRValue& value){
+        if(value.kind == IRValueKind::Variable || value.kind == IRValueKind::Temporary){
+            used.insert(value.name);
+        }
+    };
 
-//     //handle destination function
-//     auto handleDestFunc = [&](const IRValue& value, auto& it) -> bool{
-//         if(needed.find(value.name) == needed.end()){
-//             it = std::make_reverse_iterator(func.instructions.erase(std::next(it).base()));
-//             return true;
-//         }
-//         return false;
-//     };
+    //find all values that are used
+    for(const auto& instruct : func.instructions){
 
+        if(auto move = dynamic_cast<IRMove*>(instruct.get())){
+            addIfVariable(move->source);
+        }
 
-//     for(auto it = func.instructions.rbegin(); it!=func.instructions.rend(); ){
-//         IRInstruction* instruct = (*it).get();
+        else if(auto bin = dynamic_cast<IRBinOp*>(instruct.get())){
+            addIfVariable(bin->leftVal);
+            addIfVariable(bin->rightVal);
+        }
 
-//         if(auto move = dynamic_cast<IRMove*>(instruct)){ 
-//             //erase function if destination is not in needed
-//             //otherwise, erase the destination from needed, and add its source
-//             //also increment to the next iteration
-//             if(needed.find(move->destination.name) == needed.end()) changed = handleDestFunc(move->destination, it);
-//             else{
-//                 needed.erase(move->destination.name);
-//                 addIfVariable(move->source);
-//                 ++it;
-//             }
-//         }
+        else if(auto un = dynamic_cast<IRUnaryOpStruct*>(instruct.get())){
+            addIfVariable(un->value);
+        }
 
-//         else if(auto bin = dynamic_cast<IRBinOp*>(instruct)){
-//             if(needed.find(bin->destination.name) == needed.end()) changed = handleDestFunc(bin->destination, it);
-//             else{ 
-//                 needed.erase(bin->destination.name);
-//                 addIfVariable(bin->leftVal);
-//                 addIfVariable(bin->rightVal);
-//                 ++it;
-//             }
-//         }
+        else if(auto call = dynamic_cast<IRCall*>(instruct.get())){
+            for(const auto& arg : call->arguments) addIfVariable(arg);
+        }
 
-//         else if(auto consta = dynamic_cast<IRConst*>(instruct)){
-//             if(needed.find(consta->destination.name) == needed.end()) changed = handleDestFunc(consta->destination, it);
-//             else{ 
-//                 needed.erase(consta->destination.name);
-//                 addIfVariable(consta->value);
-//                 ++it;
-//             }
-//         }
+        else if(auto ret = dynamic_cast<IRReturn*>(instruct.get())){
+            addIfVariable(ret->value);
+        }
 
-//         else if(auto un = dynamic_cast<IRUnaryOpStruct*>(instruct)){
-//             if(needed.find(un->destination.name) == needed.end()) changed = handleDestFunc(un->destination, it);
-//             else{
-//                  needed.erase(un->destination.name);
-//                  addIfVariable(un->value);
-//                  ++it;
-//             }
-//         }
-//         else if(auto call = dynamic_cast<IRCall*>(instruct)){
-//             needed.erase(call->destination.name);
+        else if(auto branch = dynamic_cast<IRBranch*>(instruct.get())){
+            addIfVariable(branch->condition);
+        }
+    }
 
-//             for (const auto& arg : call->arguments) addIfVariable(arg);
-//             ++it;
-//         }
-//         else if(auto ret = dynamic_cast<IRReturn*>(instruct)){
-//             //return only has source
-//             addIfVariable(ret->value);
-//             ++it;
-//         }
-//         else if(auto branch = dynamic_cast<IRBranch*>(instruct)){
-//             //branch only has source
-//             addIfVariable(branch->condition);
-//             ++it;
-//         }
-//         //jump and label instructions
-//         else ++it;
-//     }
+    //remove instructions whose destination is never used
+    for(auto it = func.instructions.begin(); it != func.instructions.end(); ){
 
-//     return changed;
+        IRInstruction* instruct = (*it).get();
+        std::string destination;
+        bool removable = false;
 
-// }
+        if(auto move = dynamic_cast<IRMove*>(instruct)){
+            destination = move->destination.name;
+            removable = true;
+        }
+
+        else if(auto bin = dynamic_cast<IRBinOp*>(instruct)){
+            destination = bin->destination.name;
+            removable = true;
+        }
+
+        else if(auto consta = dynamic_cast<IRConst*>(instruct)){
+            destination = consta->destination.name;
+            removable = true;
+        }
+
+        else if(auto un = dynamic_cast<IRUnaryOpStruct*>(instruct)){
+            destination = un->destination.name;
+            removable = true;
+        }
+
+        if(removable && used.find(destination) == used.end()){
+            it = func.instructions.erase(it);
+            changed = true;
+        }
+
+        else ++it;
+    }
+
+    return changed;
+}
 
 //idea: whenever return, jump, or branch statements occur, this means that
 //any instructions following this should be removed because by definition they cannot be reached
