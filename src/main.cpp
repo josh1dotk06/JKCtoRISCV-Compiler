@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
         else if(flag=="--ir"){
             emitIR = true;
         }
-        else if(flag == "--opr-ir"){
+        else if(flag == "--opt-ir"){
             emitOptIR = true;
         }
         else if(flag == "--asm") {
